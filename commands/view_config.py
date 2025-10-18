@@ -19,13 +19,27 @@ class config(commands.Cog):
             await interaction.response.send_message("⚠️ Config file not found for this server.", ephemeral=True)
             return
 
-        config_message = "Current Server Configuration:\n"
-        for feature, settings in config.get('features', {}).items():
-            config_message += f"**{feature.capitalize()}**:\n"
-            for key, value in settings.items():
-                config_message += f"- {key}: {value}\n"
+        features = config.get('features', {})
 
-        await interaction.response.send_message(config_message, ephemeral=True)
+        embed = discord.Embed(
+            title=f"⚙️ Configuration of the server",
+            description="Here's the configuration of the bot for this server:",
+            colour=discord.Color.blurple() 
+        )
+        embed.set_footer(text="Chaaat • Config Viewer", icon_url=self.client.user.display_avatar.url)
+
+        for feature_name, settings in features.items():
+            if not isinstance(settings, dict):
+                settings = { "Valeur": settings }
+
+            value_str = "\n".join([f"- **{key}** : `{value}`" for key, value in settings.items()])
+            embed.add_field(
+                name=f"{feature_name}",
+                value=value_str or "_Aucun paramètre_",
+                inline=False
+            )
+
+        await interaction.response.send_message(embed=embed)
 
 async def setup(client):
     await client.add_cog(config(client))

@@ -51,9 +51,7 @@ class setconfig(commands.Cog):
             yaml.safe_dump(config, yaml_file, sort_keys=False)
 
         await interaction.response.send_message(
-            f"✅ Configuration updated: `{feature}.{option}` → `{parsed_value}`",
-            ephemeral=True
-        )
+            f"✅ Configuration updated: `{feature}.{option}` → `{parsed_value}`")
 
 async def setup(client):
     await client.add_cog(setconfig(client))
