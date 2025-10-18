@@ -23,12 +23,8 @@ class on_guild_join(commands.Cog):
         with open(f'server_configs/{guild.id}/config.yaml', 'w') as yaml_file:
             yaml.dump(default_yaml, yaml_file)
 
-        try:
-            with open(f'server_configs/{guild.id}/data.json', 'w') as json_file:
-                json.dump(default_json, json_file, indent=4)
-        except Exception as e:
-            print(f'⚠️ Failed to create JSON config for guild {guild.id}: {e}')
-            pass
+        with open(f'server_configs/{guild.id}/data.json', 'w') as json_file:
+            json.dump(default_json, json_file, indent=4)
 
 async def setup(client):
     await client.add_cog(on_guild_join(client))
