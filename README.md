@@ -37,7 +37,7 @@ Originally designed for a single specific server, this bot is now capable of bei
 
 ---
 
-## 💻 Useful bas command
+## 💻 Useful bash command
 
 ### 🔁 Update the bot to his last stable version
 
