@@ -19,7 +19,7 @@ Originally designed for a single specific server, this bot is now capable of bei
 
  - A command (`/config show`) allows you to display the current configuration in a readable embed.
 
-#### 💾 Data storage
+#### 💾 Data storage
 
  - Les données spécifiques à un serveur (comme le score de comptage) sont stockées dans `server_configs/<guild_id>/data.json`.
 
