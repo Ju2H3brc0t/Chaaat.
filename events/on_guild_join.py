@@ -13,11 +13,18 @@ class on_guild_join(commands.Cog):
         os.makedirs(f'server_configs/{guild.id}', exist_ok=True)
         
         default_yaml = {
-            'test': True,
+            'features': {
+                'counting': {
+                    'enabled': False,
+                    'channel_id': 0,
+                    'reset_if_wrong_user': False
+                }
+            }
         }
 
         default_json = {
-            'test': True,
+            'counting': 0,
+            'last_user_id': 0
         }
 
         with open(f'server_configs/{guild.id}/config.yaml', 'w') as yaml_file:

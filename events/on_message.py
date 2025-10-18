@@ -37,7 +37,6 @@ class on_message(commands.Cog):
         if counting_enabled is True:
             channel_id = int(config['features']['counting']['channel_id'])
             current_count = int(data.get('counting', 0))
-            print(f"Current count for guild {guild_id} is {current_count}, counter channel id is {channel_id}.")
             if message.channel.id == channel_id:
                 expected_count = int(current_count + 1)
                 last_user_id = data.get('last_user_id', 0)
@@ -77,9 +76,7 @@ class on_message(commands.Cog):
                         json.dump(data, json_file, indent=4)
                 else:
                     await message.add_reaction("❓")
-                    await message.channel.send(f"{message.author.mention}, an unexpected error occurred, please try later.")
-
-        await self.client.process_commands(message)
+                    await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try later.")
 
 async def setup(client):
     await client.add_cog(on_message(client))
