@@ -17,7 +17,8 @@ class stop(commands.Cog):
     @app_commands.command(name="stop", description="Shut down the bot")
     async def stop(self, interaction: discord.Interaction):
         if interaction.user.id == owner_id:
-            await interaction.response.send_message("🪫 Shutting down...", ephemeral=True)
+            await interaction.response.send_message("🪫 Bot is shutting down...", ephemeral=True)
+            print("🪫 Bot is shutting down by owner command.")
             await self.client.close()
         else:
             await interaction.response.send_message("⛔️ You do not have permission to use this command.", ephemeral=True)

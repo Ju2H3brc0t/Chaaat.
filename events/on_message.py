@@ -48,7 +48,7 @@ class on_message(commands.Cog):
 
                 if user_count != expected_count:
                     await message.add_reaction("❌")
-                    await message.channel.send(f"{message.author.mention} made a mistake, the counter was reset.\n-# Next number is 1.")
+                    await message.channel.send(f"{message.author.mention} made a mistake, the counter has been reset.\n-# Next number is 1.")
                     data['counting'] = 0
                     data['last_user_id'] = 0
                     with open(data_path, 'w') as json_file:
@@ -56,10 +56,11 @@ class on_message(commands.Cog):
                 elif message.author.id == last_user_id:
                     await message.add_reaction("❌")
                     if reset_if_wrong_user is True:
+                        await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row! The counter has been reset.\n-# Next number is 1.")
                         data['counting'] = 0
                         data['last_user_id'] = 0
-                        json.dump(data, json_file, indent=4)
-                        await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row! The counter was reset.\n-# Next number is 1.")
+                        with open(data_path, 'w') as json_file:
+                            json.dump(data, json_file, indent=4)
                     else:
                         await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
                 elif user_count == expected_count == 100 and message.author.id != last_user_id:
