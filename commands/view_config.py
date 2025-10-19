@@ -28,7 +28,7 @@ class config(commands.Cog):
         embed = discord.Embed(
             title=embed_title,
             description=embed_description,
-            colour=discord.Color.blurple() 
+            colour=discord.Color.light_gray()
         )
         embed.set_footer(text="Chaaat • Config Viewer", icon_url=self.client.user.display_avatar.url)
 
