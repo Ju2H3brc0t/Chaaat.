@@ -20,11 +20,15 @@ class config(commands.Cog):
             return
 
         features = config.get('features', {})
+        language = str(config['features']['language'].get('default'))
+
+        embed_title = "⚙️ Configuration du serveur" if language == "fr" else "⚙️ Configuration of the server"
+        embed_description = "Voici la configuration du bot pour ce serveur :" if language == "fr" else "Here's the configuration of the bot for this server:"
 
         embed = discord.Embed(
-            title=f"⚙️ Configuration of the server",
-            description="Here's the configuration of the bot for this server:",
-            colour=discord.Color.light_gray() 
+            title=embed_title,
+            description=embed_description,
+            colour=discord.Color.blurple() 
         )
         embed.set_footer(text="Chaaat • Config Viewer", icon_url=self.client.user.display_avatar.url)
 
@@ -35,7 +39,7 @@ class config(commands.Cog):
             value_str = "\n".join([f"- **{key}** : `{value}`" for key, value in settings.items()])
             embed.add_field(
                 name=f"{feature_name}",
-                value=value_str or "_Aucun paramètre_",
+                value=value_str,
                 inline=False
             )
 
