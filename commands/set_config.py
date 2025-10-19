@@ -29,6 +29,8 @@ class setconfig(commands.Cog):
             await interaction.response.send_message(f"⚠️ Feature '{feature}' does not exist in the configuration.", ephemeral=True)
             return
 
+        language = str(config['features']['language'].get('default'))
+
         feature_config = config['features'][feature]
         if feature_config is None:
             feature_config = {}
@@ -50,8 +52,11 @@ class setconfig(commands.Cog):
         with open(config_path, 'w') as yaml_file:
             yaml.safe_dump(config, yaml_file, sort_keys=False)
 
-        await interaction.response.send_message(
-            f"✅ Configuration updated: `{feature}.{option}` → `{parsed_value}`")
+
+        if language == "fr":
+            await interaction.response.send_message(f"✅ Configuration mise à jour : `{feature}.{option}` → `{parsed_value}`")
+        else:
+            await interaction.response.send_message(f"✅ Configuration updated: `{feature}.{option}` → `{parsed_value}`")
 
 async def setup(client):
     await client.add_cog(setconfig(client))
