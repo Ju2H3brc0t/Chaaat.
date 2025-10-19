@@ -33,6 +33,7 @@ class on_message(commands.Cog):
 
         counting_enabled = bool(config['features']['counting'].get('enabled'))
         reset_if_wrong_user = bool(config['features']['counting'].get('reset_if_wrong_user'))
+        language = str(config['features']['language'].get('default'))
 
         if counting_enabled is True:
             channel_id = int(config['features']['counting']['channel_id'])
@@ -43,19 +44,28 @@ class on_message(commands.Cog):
                 try:
                     user_count = int(message.content)
                 except ValueError:
-                    await message.channel.send(f"{message.author.mention}, please send a valid number.\n-# Next number is {expected_count}.")
+                    if language == "fr":
+                        await message.channel.send(f"{message.author.mention}, veuillez envoyer un nombre valide.\n-# Le nombre suivant est {expected_count}.")
+                    else:
+                        await message.channel.send(f"{message.author.mention}, please send a valid number.\n-# Next number is {expected_count}.")
                     return
 
                 if user_count != expected_count:
                     await message.add_reaction("❌")
-                    await message.channel.send(f"{message.author.mention} made a mistake, the counter was reset.\n-# Next number is 1.")
+                    if language == "fr":
+                        await message.channel.send(f"{message.author.mention} a fait une erreur, le compteur a été réinitialisé.\n-# Le nombre suivant est 1.")
+                    else:
+                        await message.channel.send(f"{message.author.mention} made a mistake, the counter was reset.\n-# Next number is 1.")
                     data['counting'] = 0
                     data['last_user_id'] = 0
                     with open(data_path, 'w') as json_file:
                         json.dump(data, json_file, indent=4)
                 elif message.author.id == last_user_id:
                     await message.add_reaction("❌")
-                    await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
+                    if language == "fr":
+                        await message.channel.send(f"{message.author.mention}, vous ne pouvez pas compter deux nombres d'affilée !\n-# Le nombre suivant est {expected_count}.")
+                    else:
+                        await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
                     if reset_if_wrong_user == True:
                         data['counting'] = 0
                         data['last_user_id'] = 0
@@ -74,7 +84,10 @@ class on_message(commands.Cog):
                         json.dump(data, json_file, indent=4)
                 else:
                     await message.add_reaction("❓")
-                    await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try later.")
+                    if language == "fr":
+                        await message.channel.send(f"⚠️ {message.author.mention}, une erreur inattendue est survenue, veuillez réessayer plus tard.")
+                    else:
+                        await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
 
 async def setup(client):
     await client.add_cog(on_message(client))
