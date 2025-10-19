@@ -14,6 +14,9 @@ class on_guild_join(commands.Cog):
         
         default_yaml = {
             'features': {
+                'language': {
+                    'default': 'en'
+                },
                 'counting': {
                     'enabled': False,
                     'channel_id': 0,
