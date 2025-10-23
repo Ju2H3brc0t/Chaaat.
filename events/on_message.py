@@ -3,7 +3,7 @@ from discord.ext import commands
 import yaml
 import json
 
-class on_message(commands.Cog):
+class OnMessage(commands.Cog):
     def __init__(self, client):
         self.client = client
     
@@ -36,7 +36,7 @@ class on_message(commands.Cog):
         language = str(config['features']['language'].get('default'))
 
         if counting_enabled is True:
-            channel_id = int(config['features']['counting']['channel_id'])
+            channel_id = int(config['features']['counting'].get('channel_id'))
             current_count = int(data.get('counting', 0))
             if message.channel.id == channel_id:
                 expected_count = int(current_count + 1)
@@ -90,4 +90,4 @@ class on_message(commands.Cog):
                         await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
 
 async def setup(client):
-    await client.add_cog(on_message(client))
+    await client.add_cog(OnMessage(client))

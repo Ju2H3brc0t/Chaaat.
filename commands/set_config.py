@@ -4,7 +4,7 @@ from discord.ext import commands
 import yaml
 import os
 
-class setconfig(commands.Cog):
+class SetConfig(commands.Cog):
     def __init__(self, client):
         self.client = client
     
@@ -68,4 +68,4 @@ class setconfig(commands.Cog):
             await interaction.response.send_message(f"✅ Configuration updated: `{feature}.{option}` → `{parsed_value}`")
 
 async def setup(client):
-    await client.add_cog(setconfig(client))
+    await client.add_cog(SetConfig(client))

@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-class say(commands.Cog):
+class Say(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -12,4 +12,4 @@ class say(commands.Cog):
         await interaction.response.send_message(message)
     
 async def setup(client):
-    await client.add_cog(say(client))
+    await client.add_cog(Say(client))

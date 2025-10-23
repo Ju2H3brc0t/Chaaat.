@@ -11,7 +11,7 @@ if not owner_id_str:
 else:
     owner_id = int(owner_id_str)
 
-class stop(commands.Cog):
+class Stop(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -42,4 +42,4 @@ class stop(commands.Cog):
                 await interaction.response.send_message("⛔️ You do not have permission to use this command.", ephemeral=True)
 
 async def setup(client):
-    await client.add_cog(stop(client))
+    await client.add_cog(Stop(client))
