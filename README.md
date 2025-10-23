@@ -30,10 +30,12 @@ Originally designed for a single specific server, this bot is now capable of bei
 ### 🎮 Practical features
 
 - A counting feature allows members to take turns counting in a specific channel.
-- The bot:
+    The bot:
     - verifies that the numerical sequence is correct,
     - prevents duplicate messages from the same user,
     - saves progress in `data.json`.
+
+- A feature for automatically adding a "member" role, previously defined in the server configuration
 
 ---
 
