@@ -21,7 +21,7 @@ Originally designed for a single specific server, this bot is now capable of bei
 
 #### 💾 Data storage
 
- - Les données spécifiques à un serveur (comme le score de comptage) sont stockées dans `server_configs/<guild_id>/data.json`.
+ - Server-specific data (like score counting) is stored in `server_configs/<guild_id>/data.json`.
 
  - Automatic read/write at each affected event.
 
