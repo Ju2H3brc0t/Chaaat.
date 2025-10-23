@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 import yaml
 
-class config(commands.Cog):
+class ViewConfig(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -46,4 +46,4 @@ class config(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 async def setup(client):
-    await client.add_cog(config(client))
+    await client.add_cog(ViewConfig(client))

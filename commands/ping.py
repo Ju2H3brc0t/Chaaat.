@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-class ping(commands.Cog):
+class Ping(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -11,4 +11,4 @@ class ping(commands.Cog):
         await interaction.response.send_message('🏓 Pong!')
 
 async def setup(client):
-    await client.add_cog(ping(client))
+    await client.add_cog(Ping(client))

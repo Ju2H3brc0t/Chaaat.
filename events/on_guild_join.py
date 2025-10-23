@@ -4,7 +4,7 @@ import os
 import yaml
 import json
 
-class on_guild_join(commands.Cog):
+class OnGuildJoin(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -37,4 +37,4 @@ class on_guild_join(commands.Cog):
             json.dump(default_json, json_file, indent=4)
 
 async def setup(client):
-    await client.add_cog(on_guild_join(client))
+    await client.add_cog(OnGuildJoin(client))
