@@ -69,7 +69,10 @@ class OnMessage(commands.Cog):
                     if reset_if_wrong_user == True:
                         data['counting'] = 0
                         data['last_user_id'] = 0
-                        json.dump(data, json_file, indent=4)
+                        with open(data_path, 'w') as json_file:
+                            json.dump(data, json_file, indent=4)
+                    else:
+                        await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
                 elif user_count == expected_count == 100 and message.author.id != last_user_id:
                     await message.add_reaction("💯")
                     data['counting'] = int(expected_count)
