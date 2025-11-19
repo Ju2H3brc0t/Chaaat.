@@ -27,7 +27,7 @@ class Stop(commands.Cog):
             print(f"⚠️ Config file not found for guild {guild_id}.")
             return
 
-        language = str(config['features']['language'].get('default'))
+        language = str(config['features'].get('language'))
 
         if interaction.user.id == owner_id:
             if language == "fr":
