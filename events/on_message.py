@@ -33,7 +33,7 @@ class OnMessage(commands.Cog):
 
         counting_enabled = bool(config['features']['counting'].get('enabled'))
         reset_if_wrong_user = bool(config['features']['counting'].get('reset_if_wrong_user'))
-        language = str(config['features']['language'].get('default'))
+        language = str(config['features'].get('language'))
 
         if counting_enabled is True:
             channel_id = int(config['features']['counting'].get('channel_id'))
@@ -62,18 +62,18 @@ class OnMessage(commands.Cog):
                         json.dump(data, json_file, indent=4)
                 elif message.author.id == last_user_id:
                     await message.add_reaction("❌")
-                    if language == "fr":
-                        await message.channel.send(f"{message.author.mention}, vous ne pouvez pas compter deux nombres d'affilée !\n-# Le nombre suivant est {expected_count}.")
-                    else:
-                        await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
                     if reset_if_wrong_user == True:
                         data['counting'] = 0
                         data['last_user_id'] = 0
                         with open(data_path, 'w') as json_file:
                             json.dump(data, json_file, indent=4)
-                    else:
+                        if language == "fr":
+                            await message.channel.send(f"{message.author.mention}, vous ne pouvez pas compter deux nombres d'affilée, le compteur a été réinitialisé.\n-# Le nombre suivant est 1.")
+                    elif language == "fr" and reset_if_wrong_user == False:
+                        await message.channel.send(f"{message.author.mention}, vous ne pouvez pas compter deux nombres d'affilée !\n-# Le nombre suivant est {expected_count}.")
+                    elif language != "fr" and reset_if_wrong_user == False:
                         await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
-                elif user_count == expected_count == 100 and message.author.id != last_user_id:
+                elif user_count == expected_count and user_count == 100 and message.author.id != last_user_id:
                     await message.add_reaction("💯")
                     data['counting'] = int(expected_count)
                     data['last_user_id'] = message.author.id

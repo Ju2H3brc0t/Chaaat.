@@ -17,7 +17,7 @@ Originally designed for a single specific server, this bot is now capable of bei
 
  - A slash command (`/set_config`) allows you to modify your server configuration.
 
- - A command (`/config show`) allows you to display the current configuration in a readable embed.
+ - A command (`/view_config`) allows you to display the current configuration in a readable embed.
 
 #### 💾 Data storage
 
