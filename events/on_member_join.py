@@ -24,17 +24,19 @@ class OnMemberJoin(commands.Cog):
         except FileNotFoundError:
             print(f"⚠️ Config file not found for guild {guild_id}.")
             return
-        
-        with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
-            json.dump(default_json, json_file, indent=4)
 
         member_enabled = bool(config['features']['member_role'].get('enabled'))
+        level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if member_enabled is True:
             member_role_id = int(config['features']['member_role'].get('role_id'))
             member_role = member.guild.get_role(member_role_id)
 
             await member.add_roles(member_role)
+
+        if level_enabled is True:
+            with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
+                json.dump(default_json, json_file, indent=4)
 
 async def setup(client):
     await client.add_cog(OnMemberJoin(client))
