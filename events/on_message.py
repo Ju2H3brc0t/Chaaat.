@@ -45,8 +45,8 @@ class OnMessage(commands.Cog):
         level_enabled = bool(config['features']['leveling'].get('enabled'))
         excluded_channels = config['features']['leveling'].get('exclude_channels')
         boosted_channels = config['features']['leveling'].get('boost_channels')
-        announcement_enabled = bool(config['features']['leveling'].get('announcement').get('enabled'))
-        announcement_channel_id = int(config['features']['leveling'].get('announcement').get('channel_id'))
+        announcement_enabled = bool(config['features']['leveling']['announcement'].get('enabled'))
+        announcement_channel_id = int(config['features']['leveling']['announcement'].get('channel_id'))
 
         language = str(config['features'].get('language'))
 
@@ -124,10 +124,22 @@ class OnMessage(commands.Cog):
                         json.dump(user_data, json_file, indent=4)
                     if announcement_enabled is True:
                         channel = message.guild.get_channel(announcement_channel_id)
+                        xp_to_next_announcement = 5 * ((current_lvl+1) ** 2) + 50 * (current_lvl+1) + 100
                         if language == "fr":
-                            await channel.send(f"🎉 Félicitations {message.author.mention}, vous avez atteint le niveau {current_lvl + 1} !")
+                            embed_title = "🎉 Nouveau niveau atteint !"
+                            embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {current_lvl + 1} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_announcement} exp."
                         else:
-                            await channel.send(f"🎉 Congratulations {message.author.mention}, you have reached level {current_lvl + 1}!")
+                            embed_title = "🎉 New level reached!"
+                            embed_description = f"Congratulations {message.author.mention}, you have reached level {current_lvl + 1}!\nTo advance to the next level, you need {xp_to_next_announcement} exp."
+
+                        embed = discord.Embed(title=embed_title,
+                                            description=embed_description,
+                                            colour=discord.Color.gold(),
+                                            timestamp=message.created_at)
+                        
+                        embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
+
+                        await channel.send(embed=embed)
                 
                 else:
                     xp_gain = 0
