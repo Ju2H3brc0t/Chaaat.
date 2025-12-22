@@ -17,15 +17,12 @@ client = commands.Bot(command_prefix='!', intents=intents)
 initial_extensions = []
 folders = ['commands', 'events']
 
-
 if token is None:
     print("‼️ Error: DISCORD_BOT_TOKEN environment variable not set.")
     raise ValueError()
 else:
     print("🔑 Bot token found.")
     token_str = str(token)
-
-
 
 for folder in folders:
     for filename in os.listdir(folder):

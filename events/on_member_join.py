@@ -34,9 +34,8 @@ class OnMemberJoin(commands.Cog):
 
             await member.add_roles(member_role)
 
-        if level_enabled is True:
-            with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
-                json.dump(default_json, json_file, indent=4)
+        with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
+            json.dump(default_json, json_file, indent=4)
 
 async def setup(client):
     await client.add_cog(OnMemberJoin(client))
