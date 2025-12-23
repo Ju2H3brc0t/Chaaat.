@@ -43,6 +43,8 @@ class OnMessage(commands.Cog):
         reset_if_wrong_user = bool(config['features']['counting'].get('reset_if_wrong_user'))
 
         level_enabled = bool(config['features']['leveling'].get('enabled'))
+        rewards = config['features']['leveling'].get('rewards')
+        rewards_stackable = bool(config['features']['leveling'].get('rewards_stackable'))
         excluded_channels = config['features']['leveling'].get('exclude_channels')
         boosted_channels = config['features']['leveling'].get('boost_channels')
         announcement_enabled = bool(config['features']['leveling']['announcement'].get('enabled'))
@@ -113,6 +115,7 @@ class OnMessage(commands.Cog):
                 current_xp = int(user_data.get('experience'))
 
                 xp_to_next = 5 * (current_lvl ** 2) + 50 * current_lvl + 100
+                next_lvl = current_lvl +1
 
                 if current_lvl >= 100:
                     return
@@ -122,15 +125,39 @@ class OnMessage(commands.Cog):
                     user_data['experience'] = int(current_xp - xp_to_next)
                     with open(user_data_path, 'w') as json_file:
                         json.dump(user_data, json_file, indent=4)
+                    if rewards is not None:
+                        levels = sorted(map(int, rewards.keys()))
+
+                        if next_lvl in levels:
+                            role_id = message.guild.get_role(int(rewards[str(next_lvl)]))
+
+                            if role_id is not None:
+                                if rewards_stackable is True:
+                                    await message.author.add_roles(role_id)
+                                else:
+                                    index = levels.index(next_lvl)
+
+                                    if index == 0:
+                                        default_role = message.guild.get_role(int(config['features']['leveling'].get('default_level')))
+                                        if default_role and default_role in message.author.roles:
+                                            await message.author.remove_roles(default_role)
+                                    else:
+                                        previous_lvl = levels[index - 1]
+                                        previous_role = message.guild.get_role(int(rewards[str(previous_lvl)]))
+                                        if previous_role and previous_role in message.author.roles:
+                                            await message.author.remove_roles(previous_role)
+                                    
+                                    await message.author.add_roles(role_id)
+
                     if announcement_enabled is True:
                         channel = message.guild.get_channel(announcement_channel_id)
-                        xp_to_next_announcement = 5 * ((current_lvl+1) ** 2) + 50 * (current_lvl+1) + 100
+                        xp_to_next_in_announcement = 5 * (next_lvl ** 2) + 50 * next_lvl + 100
                         if language == "fr":
                             embed_title = "🎉 Nouveau niveau atteint !"
-                            embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {current_lvl + 1} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_announcement} exp."
+                            embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {next_lvl} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_in_announcement} exp."
                         else:
                             embed_title = "🎉 New level reached!"
-                            embed_description = f"Congratulations {message.author.mention}, you have reached level {current_lvl + 1}!\nTo advance to the next level, you need {xp_to_next_announcement} exp."
+                            embed_description = f"Congratulations {message.author.mention}, you have reached level {next_lvl}!\nTo advance to the next level, you need {xp_to_next_in_announcement} exp."
 
                         embed = discord.Embed(title=embed_title,
                                             description=embed_description,

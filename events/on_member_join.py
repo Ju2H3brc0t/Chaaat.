@@ -14,7 +14,7 @@ class OnMemberJoin(commands.Cog):
         config_path = f'server_configs/{guild_id}/config.yaml'
 
         default_json = {
-            'level': 0,
+            'level': 1,
             'experience': 0
         }
 
@@ -29,10 +29,16 @@ class OnMemberJoin(commands.Cog):
         level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if member_enabled is True:
-            member_role_id = int(config['features']['member_role'].get('role_id'))
-            member_role = member.guild.get_role(member_role_id)
-
-            await member.add_roles(member_role)
+            for role in config['features']['member_role'].get('role_id'):
+                member_role = member.guild.get_role(int(role))
+                if member_role is not None:
+                    await member.add_roles(member_role)
+        
+        if level_enabled is True:
+            default_level_role_id = int(config['features']['leveling'].get('default_level'))
+            default_level_role = member.guild.get_role(default_level_role_id)
+            if default_level_role is not None:
+                await member.add_roles(default_level_role)
 
         with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
             json.dump(default_json, json_file, indent=4)
