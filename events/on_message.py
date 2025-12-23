@@ -113,6 +113,7 @@ class OnMessage(commands.Cog):
             if not excluded_channels or message.channel.id not in excluded_channels:
                 current_lvl = int(user_data.get('level'))
                 current_xp = int(user_data.get('experience'))
+                reward_role = None
 
                 xp_to_next = 5 * (current_lvl ** 2) + 50 * current_lvl + 100
                 next_lvl = current_lvl +1
@@ -148,16 +149,25 @@ class OnMessage(commands.Cog):
                                             await message.author.remove_roles(previous_role)
                                     
                                     await message.author.add_roles(role_id)
+                                reward_role = role_id
 
                     if announcement_enabled is True:
                         channel = message.guild.get_channel(announcement_channel_id)
                         xp_to_next_in_announcement = 5 * (next_lvl ** 2) + 50 * next_lvl + 100
                         if language == "fr":
-                            embed_title = "🎉 Nouveau niveau atteint !"
-                            embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {next_lvl} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_in_announcement} exp."
+                            if reward_role is not None:
+                                embed_title = "🎉 Nouveau niveau atteint !"
+                                embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {next_lvl} et obtenu le rôle {reward_role.mention} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_in_announcement} exp."
+                            else:
+                                embed_title = "🎉 Nouveau niveau atteint !"
+                                embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {next_lvl} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_in_announcement} exp."
                         else:
-                            embed_title = "🎉 New level reached!"
-                            embed_description = f"Congratulations {message.author.mention}, you have reached level {next_lvl}!\nTo advance to the next level, you need {xp_to_next_in_announcement} exp."
+                            if reward_role is not None:
+                                embed_title = "🎉 New level reached!"
+                                embed_description = f"Congratulations {message.author.mention}, you have reached level {next_lvl} and earned the role {reward_role.mention}!\nTo advance to the next level, you need {xp_to_next_in_announcement} exp."
+                            else:
+                                embed_title = "🎉 New level reached!"
+                                embed_description = f"Congratulations {message.author.mention}, you have reached level {next_lvl}!\nTo advance to the next level, you need {xp_to_next_in_announcement} exp."
 
                         embed = discord.Embed(title=embed_title,
                                             description=embed_description,
