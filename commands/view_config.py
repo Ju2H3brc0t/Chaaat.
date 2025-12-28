@@ -63,6 +63,5 @@ class ViewConfig(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-
 async def setup(client):
     await client.add_cog(ViewConfig(client))
