@@ -157,17 +157,17 @@ class OnMessage(commands.Cog):
                         if language == "fr":
                             if reward_role is not None:
                                 embed_title = "🎉 Nouveau niveau atteint !"
-                                embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {next_lvl} et obtenu le rôle {reward_role.mention} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_in_announcement} exp."
+                                embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau **{next_lvl}** et obtenu le rôle {reward_role.mention} !\nPour passer au niveau suivant, vous avez besoin de **{xp_to_next_in_announcement}** exp."
                             else:
                                 embed_title = "🎉 Nouveau niveau atteint !"
-                                embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau {next_lvl} !\nPour passer au niveau suivant, vous avez besoin de {xp_to_next_in_announcement} exp."
+                                embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau **{next_lvl}** !\nPour passer au niveau suivant, vous avez besoin de **{xp_to_next_in_announcement}** exp."
                         else:
                             if reward_role is not None:
                                 embed_title = "🎉 New level reached!"
-                                embed_description = f"Congratulations {message.author.mention}, you have reached level {next_lvl} and earned the role {reward_role.mention}!\nTo advance to the next level, you need {xp_to_next_in_announcement} exp."
+                                embed_description = f"Congratulations {message.author.mention}, you have reached level **{next_lvl}** and earned the role {reward_role.mention}!\nTo advance to the next level, you need **{xp_to_next_in_announcement}** exp."
                             else:
                                 embed_title = "🎉 New level reached!"
-                                embed_description = f"Congratulations {message.author.mention}, you have reached level {next_lvl}!\nTo advance to the next level, you need {xp_to_next_in_announcement} exp."
+                                embed_description = f"Congratulations {message.author.mention}, you have reached level **{next_lvl}**!\nTo advance to the next level, you need **{xp_to_next_in_announcement}** exp."
 
                         embed = discord.Embed(title=embed_title,
                                             description=embed_description,
