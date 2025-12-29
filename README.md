@@ -23,6 +23,8 @@ Originally designed for a single specific server, this bot is now capable of bei
 
  - Server-specific data (like score counting) is stored in `server_configs/<guild_id>/data.json`.
 
+ - User-specific data (like current level) is stored in `server_configs/<guild_id>/<user_id>.json`
+
  - Automatic read/write at each affected event.
 
 ---
@@ -33,9 +35,19 @@ Originally designed for a single specific server, this bot is now capable of bei
     The bot:
     - verifies that the numerical sequence is correct,
     - prevents duplicate messages from the same user,
+    - optionally resets the counter on mistakes,
     - saves progress in `data.json`.
 
-- A feature for automatically adding a "member" role, previously defined in the server configuration
+- A leveling system reward members for being active.
+    The bot:
+    - grant experience points for each messages sent,
+    - supports boosted and excluded channels,
+    - automatically levels up users when enought XP is reached,
+    - assigns level-based roles defined in the server configuration,
+    - can stack role or replace the previous one,
+    - sends a level-up announcement embed in a dedicated channel.
+
+- A feature for automatically adding on or multiple "member" role when a user join the server, based on the server configuration
 
 ---
 
