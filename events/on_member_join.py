@@ -25,23 +25,37 @@ class OnMemberJoin(commands.Cog):
             print(f"⚠️ Config file not found for guild {guild_id}.")
             return
 
-        member_enabled = bool(config['features']['member_role'].get('enabled'))
-        level_enabled = bool(config['features']['leveling'].get('enabled'))
-
-        if member_enabled is True:
-            for role in config['features']['member_role'].get('role_id'):
-                member_role = member.guild.get_role(int(role))
-                if member_role is not None:
-                    await member.add_roles(member_role)
-        
-        if level_enabled is True:
-            default_level_role_id = int(config['features']['leveling'].get('default_level'))
-            default_level_role = member.guild.get_role(default_level_role_id)
-            if default_level_role is not None:
-                await member.add_roles(default_level_role)
-
         with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
             json.dump(default_json, json_file, indent=4)
+
+        member_enabled = bool(config['features']['member_role'].get('enabled'))
+        welcome_enabled = bool(config['features']['welcome'].get('enabled'))
+        channel_id = int(config['features']['welcome'].get('channel_id'))
+
+        language = config['features'].get('language', 'en')
+
+        if member_enabled is True:
+            for role_id in config['features']['member_role'].get('role_id', []):
+                role = member.guild.get_role(int(role_id))
+                if role is not None:
+                    await member.add_roles(role)
+
+        if welcome_enabled is True:
+            channel = self.client.get_channel(channel_id)
+            if language == 'fr':
+                embed_title = "Bienvenue !"
+                embed_description = f"Bonjour {member.mention}, bienvenue sur {member.guild.name} !\nLe serveur compte désormais {member.guild.member_count} membres."
+            else:
+                embed_title = "Welcome !"
+                embed_description = f"Hello {member.mention}, welcome to {member.guild.name} !\nThe server now has {member.guild.member_count} members."
+            embed = discord.Embed(
+                title=embed_title,
+                description=embed_description,
+                color=discord.Color.teal(),
+                timestamp=discord.utils.utcnow()
+            )
+            embed.set_thumbnail(url=member.display_avatar.url)
+            await channel.send(embed=embed)
 
 async def setup(client):
     await client.add_cog(OnMemberJoin(client))
