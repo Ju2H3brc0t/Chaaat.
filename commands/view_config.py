@@ -36,10 +36,10 @@ class ViewConfig(commands.Cog):
 
         if language == "fr":
             embed_title = "⚙️ Configuration du serveur"
-            embed_description = "Voici la configuration du bot pour ce serveur :"
+            embed_description = "⚠️ Cette commande renvoi directement le contenu du fichier yaml associé a ce serveur, vous pouvez l'éditer via la commande `/set_config` a vos risques et périls.\n\nVoici la configuration du bot pour ce serveur :"
         else:
             embed_title = "⚙️ Server configuration"
-            embed_description = "Here is the bot configuration for this server:"
+            embed_description = "⚠️ This command directly returns the content of the yaml file associated with this server, you can edit it via the `/set_config` command at your own risk.\n\nHere is the bot configuration for this server :"
 
         embed = discord.Embed(
             title=embed_title,
