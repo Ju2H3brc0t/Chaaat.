@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import yaml
+import os
 
 class OnMemberRemove(commands.Cog):
     def __init__(self, client):
@@ -30,15 +31,19 @@ class OnMemberRemove(commands.Cog):
                 embed_title = "Au revoir !"
                 embed_description = f"{member.mention} a quitté le serveur."
             else:
-                embed_title = "Goodbye!"
+                embed_title = "Goodbye !"
                 embed_description = f"{member.mention} has left the server."
             embed = discord.Embed(
                 title=embed_title,
                 description=embed_description,
-                color=discord.Color.dark_red()
+                color=discord.Color.dark_red(),
+                timestamp=discord.utils.utcnow()
             )
-            embed.set_thumbnail(url=member.avatar.url)
+            embed.set_thumbnail(url=member.display_avatar.url)
             await channel.send(embed=embed)
+
+        if os.path.exists(f'server_configs/{guild_id}/{member.id}.json'):
+            os.remove(f'server_configs/{guild_id}/{member.id}.json')
 
 async def setup(client):
     await client.add_cog(OnMemberRemove(client))
