@@ -16,7 +16,8 @@ class OnMemberJoin(commands.Cog):
         default_json = {
             'level': 1,
             'experience': 0,
-            'birthday': '31/12/2000'
+            'birthday': '0',
+            'last_gift': [0]
         }
 
         try:
@@ -45,10 +46,10 @@ class OnMemberJoin(commands.Cog):
             channel = self.client.get_channel(channel_id)
             if language == 'fr':
                 embed_title = "Bienvenue !"
-                embed_description = f"Bonjour {member.mention}, bienvenue sur {member.guild.name} !\nLe serveur compte désormais {member.guild.member_count} membres."
+                embed_description = f"Bonjour <@{member.id}>, bienvenue sur {member.guild.name} !\nLe serveur compte désormais {member.guild.member_count} membres."
             else:
                 embed_title = "Welcome !"
-                embed_description = f"Hello {member.mention}, welcome to {member.guild.name} !\nThe server now has {member.guild.member_count} members."
+                embed_description = f"Hello <@{member.id}>, welcome to {member.guild.name} !\nThe server now has {member.guild.member_count} members."
             embed = discord.Embed(
                 title=embed_title,
                 description=embed_description,

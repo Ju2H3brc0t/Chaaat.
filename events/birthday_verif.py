@@ -40,22 +40,32 @@ class BirthdayVerif(commands.Cog):
 
                     if birthday_enabled is True and user_data['birthday'] != "0":
                         birthday = user_data['birthday']
+                        guild = self.client.get_guild(int(dir))
+                        member = guild.get_member(int(users.split('.')[0]))
 
                         if birthday == today:
-                            guild = self.client.get_guild(int(dir))
-                            member = guild.get_member(int(users.split('.')[0]))
-
                             if member:
                                 channel_id = int(config['features']['birthday'].get('announcement_channel_id'))
                                 channel = self.client.get_channel(channel_id)
                                 language = config['features'].get('language')
 
+                                gift_enabled = bool(config['features']['birthday']['gift'].get('enabled'))
+                                
+                                if user_data['last_gift'] != [0]:
+                                    role_to_remove = []
+                                    for role_id in user_data['last_gift']:
+                                        role = member.guild.get_role(int(role_id))
+                                        if role is not None:
+                                            role_to_remove.append(role)
+                                    if role_to_remove:
+                                        await member.remove_roles(*role_to_remove)
+
                                 if language == "fr":
-                                    embed_title = f"Joyeux Anniversaire {member.mention} !"
-                                    embed_description = f"🎉🎂 On souhaite un joyeux anniversaire a {member.mention} !"
+                                    embed_title = f"Joyeux Anniversaire {member.display_name} !"
+                                    embed_description = f"🎉🎂 On souhaite un joyeux anniversaire a <@{member.id}> !"
                                 else:
-                                    embed_title = f"Happy Birthday {member.mention} !"
-                                    embed_description = f"🎉🎂 We wish an happy birthday to {member.mention} !"
+                                    embed_title = f"Happy Birthday {member.display_name} !"
+                                    embed_description = f"🎉🎂 We wish an happy birthday to <@{member.id}> !"
                                 
                                 embed = discord.Embed(
                                     title = embed_title,
@@ -64,6 +74,35 @@ class BirthdayVerif(commands.Cog):
                                     timestamp = discord.utils.utcnow()
                                 )
                                 embed.set_thumbnail(url=member.display_avatar.url)
+
+                                if gift_enabled is True:
+                                    role_list = config['features']['birthday']['gift'].get('role')
+                                    temporary_role_list = config['features']['birthday']['gift'].get('temporary_role')
+                                    xp = config['features']['birthday']['gift'].get('xp')
+                                    
+                                    for role_id in role_list:
+                                        role = member.guild.get_role(int(role_id))
+                                        if role is not None:
+                                            await member.add_role(role)
+                                    
+                                    for role_id in temporary_role_list:
+                                        role = member.guild.get_role(int(role_id))
+                                        if role is not None:
+                                            await member.add_role(role)
+                                    
+                                    if xp > 0:
+                                        current_xp = user_data.get('xp')
+                                        user_data['xp'] = current_xp + xp
+
+                                        with open(user_data_path, 'w') as json_file:
+                                            json.dump(user_data, json_file, indent=4)
+                                    
+                                    if temporary_role_list != [0]:
+                                        user_data['last_gift'] = temporary_role_list
+
+                                        with open(user_data_path, 'w') as json_file:
+                                            json.dump(user_data, json_file, indent=4)
+
                                 await channel.send(embed=embed)
 
 async def setup(client):
