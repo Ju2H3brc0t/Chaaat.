@@ -30,13 +30,16 @@ for folder in folders:
             initial_extensions.append(f'{folder}.{filename[:-3]}')
 
 @client.event
-async def on_ready():
-    print(f'✅ Logged in as {client.user}')
+async def setup_hook():
     try:
         synced = await client.tree.sync()
         print(f'🌐 Synced {len(synced)} command(s)')
     except Exception as e:
         print(f'⚠️ Failed to sync commands: {e}')
+
+@client.event
+async def on_ready():
+    print(f'✅ Logged in as {client.user}')
 
 async def main():
     for extension in initial_extensions:
