@@ -15,7 +15,8 @@ class OnMemberJoin(commands.Cog):
 
         default_json = {
             'level': 1,
-            'experience': 0
+            'experience': 0,
+            'birthday': '31/12/2000'
         }
 
         try:
