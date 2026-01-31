@@ -27,6 +27,10 @@ Originally designed for a single specific server, this bot is now capable of bei
 
  - Automatic read/write at each affected event.
 
+#### 🔄 Hot reload
+
+ - A `/reload` command allows you to reload the cogs without disconnecting it.
+
 ---
 
 ### 🎮 Practical features
@@ -46,6 +50,12 @@ Originally designed for a single specific server, this bot is now capable of bei
     - assigns level-based roles defined in the server configuration,
     - can stack role or replace the previous one,
     - sends a level-up announcement embed in a dedicated channel.
+
+- A fully automated system to celebrate member's birthday.
+    The bot:
+    - Check everyday for user's birthday who match the current day,
+    - Send a announcement in a dedicated channel,
+    - Gift some experience, role and temporary role, for the day.
 
 - A feature for automatically adding on or multiple "member" role when a user join the server, based on the server configuration
 
