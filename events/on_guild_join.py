@@ -22,12 +22,12 @@ class OnGuildJoin(commands.Cog):
                 'language': 'en',
                 'member_role': {
                     'enabled': False,
-                    'role_id': [0, 0, 0]
+                    'role_id': [0]
                 },
                 'leveling': {
                     'enabled': False,
-                    'exclude_channels': [0, 0, 0],
-                    'boost_channels': [0, 0, 0],
+                    'exclude_channels': [0],
+                    'boost_channels': [0],
                     'default_level': 0,
                     'rewards': {
                         '0': 0,
@@ -47,6 +47,16 @@ class OnGuildJoin(commands.Cog):
                 'goodbye': {
                     'enabled': False,
                     'channel_id': 0
+                },
+                'birthday': {
+                    'enabled': False,
+                    'announcement_channel_id': 0,
+                    'gift': {
+                        'enabled': False,
+                        'role': [0],
+                        'temporary_role': [0],
+                        'xp': 0
+                    }
                 }
             }
         }
