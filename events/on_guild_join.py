@@ -14,13 +14,49 @@ class OnGuildJoin(commands.Cog):
         
         default_yaml = {
             'features': {
-                'language': {
-                    'default': 'en'
-                },
                 'counting': {
-                    'enabled': False,
                     'channel_id': 0,
+                    'enabled': False,
                     'reset_if_wrong_user': False
+                },
+                'language': 'en',
+                'member_role': {
+                    'enabled': False,
+                    'role_id': [0]
+                },
+                'leveling': {
+                    'enabled': False,
+                    'exclude_channels': [0],
+                    'boost_channels': [0],
+                    'default_level': 0,
+                    'rewards': {
+                        '0': 0,
+                        '0': 0,
+                        '0': 0
+                    },
+                    'rewards_stackable': False,
+                    'announcement': {
+                        'enabled': False,
+                        'channel_id': 0
+                    }
+                },
+                'welcome': {
+                    'enabled': False,
+                    'channel_id': 0
+                },
+                'goodbye': {
+                    'enabled': False,
+                    'channel_id': 0
+                },
+                'birthday': {
+                    'enabled': False,
+                    'announcement_channel_id': 0,
+                    'gift': {
+                        'enabled': False,
+                        'role': [0],
+                        'temporary_role': [0],
+                        'xp': 0
+                    }
                 }
             }
         }

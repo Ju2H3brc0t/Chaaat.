@@ -17,7 +17,6 @@ client = commands.Bot(command_prefix='!', intents=intents)
 initial_extensions = []
 folders = ['commands', 'events']
 
-
 if token is None:
     print("‼️ Error: DISCORD_BOT_TOKEN environment variable not set.")
     raise ValueError()
@@ -25,21 +24,22 @@ else:
     print("🔑 Bot token found.")
     token_str = str(token)
 
-
-
 for folder in folders:
     for filename in os.listdir(folder):
         if filename.endswith('.py'):
             initial_extensions.append(f'{folder}.{filename[:-3]}')
 
 @client.event
-async def on_ready():
-    print(f'✅ Logged in as {client.user}')
+async def setup_hook():
     try:
         synced = await client.tree.sync()
         print(f'🌐 Synced {len(synced)} command(s)')
     except Exception as e:
         print(f'⚠️ Failed to sync commands: {e}')
+
+@client.event
+async def on_ready():
+    print(f'✅ Logged in as {client.user}')
 
 async def main():
     for extension in initial_extensions:
