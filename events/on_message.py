@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import asyncio
 import yaml
 import json
 
@@ -49,6 +50,9 @@ class OnMessage(commands.Cog):
         boosted_channels = config['features']['leveling'].get('boost_channels')
         announcement_enabled = bool(config['features']['leveling']['announcement'].get('enabled'))
         announcement_channel_id = int(config['features']['leveling']['announcement'].get('channel_id'))
+
+        autodelete_enabled = bool(config['features']['message_autodelete'].get('enabled'))
+        autodelete_duration = int(config['features']['message_autodelete'].get('wait_m'))
 
         language = str(config['features'].get('language'))
 
@@ -187,6 +191,14 @@ class OnMessage(commands.Cog):
                     user_data['experience'] = int(current_xp + xp_gain)
                     with open(user_data_path, 'w') as json_file:
                         json.dump(user_data, json_file, indent=4)
+
+        if autodelete_enabled is True:
+            async def autodelete():
+                if message.channel.id in config['features']['message_autodelete'].get('channels_id'):
+                    await asyncio.sleep(60*autodelete_duration)
+                    await message.delete()
+        
+        self.client.loop.create_task(autodelete())
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
