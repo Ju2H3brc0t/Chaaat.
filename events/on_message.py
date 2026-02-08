@@ -54,6 +54,10 @@ class OnMessage(commands.Cog):
         autodelete_enabled = bool(config['features']['message_autodelete'].get('enabled'))
         autodelete_duration = int(config['features']['message_autodelete'].get('wait_m'))
 
+        bump_reminder_enabled = bool(config['features']['bump_reminder'].get('enabled'))
+        bump_reminder_channel_id = int(config['features']['bump_reminder'].get('channel_id'))
+
+
         language = str(config['features'].get('language'))
 
         if counting_enabled is True:
@@ -199,6 +203,15 @@ class OnMessage(commands.Cog):
                     await message.delete()
         
         self.client.loop.create_task(autodelete())
+        
+        if bump_reminder_enabled is True:
+            if message.author == 302050872383242240:
+                async def reminder():
+                    channel = message.guild.get_channel(bump_reminder_channel_id)
+                    await asyncio.sleep(7200)
+                    await channel.send_message("Vous pouvez bump !")
+
+        self.client.loop.create_task(reminder())
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
