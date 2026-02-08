@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import asyncio
 import yaml
 import json
 
@@ -49,6 +50,13 @@ class OnMessage(commands.Cog):
         boosted_channels = config['features']['leveling'].get('boost_channels')
         announcement_enabled = bool(config['features']['leveling']['announcement'].get('enabled'))
         announcement_channel_id = int(config['features']['leveling']['announcement'].get('channel_id'))
+
+        autodelete_enabled = bool(config['features']['message_autodelete'].get('enabled'))
+        autodelete_duration = int(config['features']['message_autodelete'].get('wait_m'))
+
+        bump_reminder_enabled = bool(config['features']['bump_reminder'].get('enabled'))
+        bump_reminder_channel_id = int(config['features']['bump_reminder'].get('channel_id'))
+
 
         language = str(config['features'].get('language'))
 
@@ -187,6 +195,26 @@ class OnMessage(commands.Cog):
                     user_data['experience'] = int(current_xp + xp_gain)
                     with open(user_data_path, 'w') as json_file:
                         json.dump(user_data, json_file, indent=4)
+
+        if autodelete_enabled is True:
+            async def autodelete():
+                if message.channel.id in config['features']['message_autodelete'].get('channels_id'):
+                    await asyncio.sleep(60*autodelete_duration)
+                    await message.delete()
+        
+        self.client.loop.create_task(autodelete())
+        
+        if bump_reminder_enabled is True:
+            if message.author == 302050872383242240:
+                async def reminder():
+                    channel = message.guild.get_channel(bump_reminder_channel_id)
+                    await asyncio.sleep(7200)
+                    if language == "fr":
+                        await channel.send_message("📲 Il est l'heure de bumper le serveur")
+                    else:
+                        await channel.send_message("📲 It's time to bump the server")
+
+        self.client.loop.create_task(reminder())
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
