@@ -16,18 +16,20 @@ class BirthdayVerif(commands.Cog):
     @tasks.loop(time=datetime.time(hour=8, minute=0))
     async def verif_birthday(self):
         for dir in os.listdir(f'server_configs'):
-            for users in os.listdir(f'server_configs/{dir}'):
-                if users.endswith('.json'):
-                    user_data_path = f'server_configs/{dir}/{users}'
-                    config_path = f'server_configs/{dir}/config.yaml'
-                    today = datetime.now().strftime("%d/%m")
 
-                    try:
-                        with open(config_path, 'r') as yaml_file:
-                            config = yaml.safe_load(yaml_file)
-                    except FileNotFoundError:
-                        print(f"⚠️ Config file not found for guild {dir}.")
-                        continue
+            config_path = f'server_configs/{dir}/config.yaml'
+
+            try:
+                with open(config_path, 'r') as yaml_file:
+                    config = yaml.safe_load(yaml_file)
+            except FileNotFoundError:
+                print(f"⚠️ Config file not found for guild {dir}")
+                continue
+
+            for users in os.listdir(f'server_configs/{dir}'):
+                if users.endswith('.json') and users != 'data.json':
+                    user_data_path = f'server_configs/{dir}/{users}'
+                    today = datetime.datetime.now().strftime("%d/%m")
                     
                     try:
                         with open(user_data_path, 'r') as json_file:
@@ -83,12 +85,12 @@ class BirthdayVerif(commands.Cog):
                                     for role_id in role_list:
                                         role = member.guild.get_role(int(role_id))
                                         if role is not None:
-                                            await member.add_role(role)
+                                            await member.add_roles(role)
                                     
                                     for role_id in temporary_role_list:
                                         role = member.guild.get_role(int(role_id))
                                         if role is not None:
-                                            await member.add_role(role)
+                                            await member.add_roles(role)
                                     
                                     if xp > 0:
                                         current_xp = user_data.get('xp')
