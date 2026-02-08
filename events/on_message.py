@@ -58,7 +58,7 @@ class OnMessage(commands.Cog):
         language = str(config['features'].get('language'))
 
         if counting_enabled is True:
-            if message.author.bot:
+            if message.author.id == self.client.user.id:
                 return
             channel_id = int(config['features']['counting'].get('channel_id'))
             current_count = int(data.get('counting', 0))
@@ -117,7 +117,7 @@ class OnMessage(commands.Cog):
                         await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
         
         if level_enabled is True:
-            if message.author.bot:
+            if message.author.id == self.client.user.id:
                 return
             if not excluded_channels or message.channel.id not in excluded_channels:
                 current_lvl = int(user_data.get('level'))
