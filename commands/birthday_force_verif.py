@@ -92,8 +92,8 @@ class ForceVerif(commands.Cog):
                                                 await member.add_roles(role)
                                     
                                         if xp > 0:
-                                            current_xp = user_data.get('xp')
-                                            user_data['xp'] = current_xp + xp
+                                            current_xp = user_data.get('experience')
+                                            user_data['experience'] = current_xp + xp
 
                                             with open(user_data_path, 'w') as json_file:
                                                 json.dump(user_data, json_file, indent=4)
