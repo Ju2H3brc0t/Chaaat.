@@ -43,7 +43,7 @@ class BirthdayVerif(commands.Cog):
                     if birthday_enabled is True and user_data['birthday'] != "0":
                         birthday = user_data['birthday']
                         guild = self.client.get_guild(int(dir))
-                        member = guild.get_member(int(users.split('.')[0]))
+                        member = await guild.getch_member(int(users.split('.')[0]))
 
                         if birthday == today:
                             if member:
