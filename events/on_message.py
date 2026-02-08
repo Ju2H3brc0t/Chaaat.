@@ -61,6 +61,8 @@ class OnMessage(commands.Cog):
         language = str(config['features'].get('language'))
 
         if counting_enabled is True:
+            if message.author.bot:
+                return
             channel_id = int(config['features']['counting'].get('channel_id'))
             current_count = int(data.get('counting', 0))
             if message.channel.id == channel_id:
@@ -118,6 +120,8 @@ class OnMessage(commands.Cog):
                         await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
         
         if level_enabled is True:
+            if message.author.bot:
+                return
             if not excluded_channels or message.channel.id not in excluded_channels:
                 current_lvl = int(user_data.get('level'))
                 current_xp = int(user_data.get('experience'))
@@ -196,28 +200,25 @@ class OnMessage(commands.Cog):
                     with open(user_data_path, 'w') as json_file:
                         json.dump(user_data, json_file, indent=4)
 
-        try:
-            if autodelete_enabled is True:
-                async def autodelete():
-                    if message.channel.id in config['features']['message_autodelete'].get('channels_id'):
-                        await asyncio.sleep(60*autodelete_duration)
-                        await message.delete()
+        if autodelete_enabled is True:
+            async def autodelete():
+                if message.channel.id in config['features']['message_autodelete'].get('channels_id'):
+                    await asyncio.sleep(60*autodelete_duration)
+                    await message.delete()
         
-                self.client.loop.create_task(autodelete())
+            self.client.loop.create_task(autodelete())
         
-            if bump_reminder_enabled is True:
-                if message.author.id == 302050872383242240:
-                    async def reminder():
-                        channel = message.guild.get_channel(bump_reminder_channel_id)
-                        await asyncio.sleep(7200)
-                        if language == "fr":
-                            await channel.send("📲 Il est l'heure de bumper le serveur")
-                        else:
-                            await channel.send("📲 It's time to bump the server")
+        if bump_reminder_enabled is True:
+            if message.author.id == 302050872383242240:
+                async def reminder():
+                    channel = message.guild.get_channel(bump_reminder_channel_id)
+                    await asyncio.sleep(7200)
+                    if language == "fr":
+                        await channel.send("📲 Il est l'heure de bumper le serveur")
+                    else:
+                        await channel.send("📲 It's time to bump the server")
 
                     self.client.loop.create_task(reminder())
-        except Exception as e:
-            print(e)
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
