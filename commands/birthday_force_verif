@@ -1,19 +1,16 @@
 import discord
-from discord.ext import commands, tasks
-import datetime
+from discord import app_commands
+from discord.ext import commands
+from datetime import datetime
 import json
 import yaml
 import os
 
-class BirthdayVerif(commands.Cog):
+class ForceVerif(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.verif_birthday.start()
-    
-    def cog_unload(self):
-        self.verif_birthday.cancel()
-    
-    @tasks.loop(time=datetime.time(hour=8, minute=0))
+
+    @app_commands.command(name="force_birthday_verif", description="Temporary debug command")
     async def verif_birthday(self):
         for dir in os.listdir(f'server_configs'):
 
@@ -108,4 +105,4 @@ class BirthdayVerif(commands.Cog):
                                 await channel.send(embed=embed)
 
 async def setup(client):
-    await client.add_cog(BirthdayVerif(client))
+    await client.add_cog(ForceVerif(client))
