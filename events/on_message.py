@@ -202,19 +202,19 @@ class OnMessage(commands.Cog):
                     await asyncio.sleep(60*autodelete_duration)
                     await message.delete()
         
-        self.client.loop.create_task(autodelete())
+            self.client.loop.create_task(autodelete())
         
         if bump_reminder_enabled is True:
-            if message.author == 302050872383242240:
+            if message.author.id == 302050872383242240:
                 async def reminder():
                     channel = message.guild.get_channel(bump_reminder_channel_id)
                     await asyncio.sleep(7200)
                     if language == "fr":
-                        await channel.send_message("📲 Il est l'heure de bumper le serveur")
+                        await channel.send("📲 Il est l'heure de bumper le serveur")
                     else:
-                        await channel.send_message("📲 It's time to bump the server")
+                        await channel.send("📲 It's time to bump the server")
 
-        self.client.loop.create_task(reminder())
+                self.client.loop.create_task(reminder())
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
