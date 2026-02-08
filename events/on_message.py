@@ -209,7 +209,10 @@ class OnMessage(commands.Cog):
                 async def reminder():
                     channel = message.guild.get_channel(bump_reminder_channel_id)
                     await asyncio.sleep(7200)
-                    await channel.send_message("Vous pouvez bump !")
+                    if language == "fr":
+                        await channel.send_message("📲 Il est l'heure de bumper le serveur")
+                    else:
+                        await channel.send_message("📲 It's time to bump the server")
 
         self.client.loop.create_task(reminder())
 
