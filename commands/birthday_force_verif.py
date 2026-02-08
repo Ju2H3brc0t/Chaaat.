@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from datetime import datetime
+import datetime
 import json
 import yaml
 import os
@@ -11,7 +11,8 @@ class ForceVerif(commands.Cog):
         self.client = client
 
     @app_commands.command(name="force_birthday_verif", description="Temporary debug command")
-    async def verif_birthday(self):
+    async def verif_birthday(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         for dir in os.listdir(f'server_configs'):
 
             config_path = f'server_configs/{dir}/config.yaml'
@@ -103,6 +104,7 @@ class ForceVerif(commands.Cog):
                                             json.dump(user_data, json_file, indent=4)
 
                                 await channel.send(embed=embed)
+            await interaction.followup.send("Birthday verified")
 
 async def setup(client):
     await client.add_cog(ForceVerif(client))
