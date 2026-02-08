@@ -10,9 +10,6 @@ class OnMessage(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
-    
-        if message.author.bot:
-            return
 
         guild_id = message.guild.id
         config_path = f'server_configs/{guild_id}/config.yaml'
