@@ -61,6 +61,8 @@ class OnMessage(commands.Cog):
         language = str(config['features'].get('language'))
 
         if counting_enabled is True:
+            if message.author.bot:
+                return
             channel_id = int(config['features']['counting'].get('channel_id'))
             current_count = int(data.get('counting', 0))
             if message.channel.id == channel_id:
@@ -118,6 +120,8 @@ class OnMessage(commands.Cog):
                         await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
         
         if level_enabled is True:
+            if message.author.bot:
+                return
             if not excluded_channels or message.channel.id not in excluded_channels:
                 current_lvl = int(user_data.get('level'))
                 current_xp = int(user_data.get('experience'))
@@ -214,7 +218,7 @@ class OnMessage(commands.Cog):
                     else:
                         await channel.send("📲 It's time to bump the server")
 
-                self.client.loop.create_task(reminder())
+                    self.client.loop.create_task(reminder())
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
