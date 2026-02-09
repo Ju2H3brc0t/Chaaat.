@@ -200,7 +200,7 @@ class OnMessage(commands.Cog):
 
         if autodelete_enabled is True:
             async def autodelete():
-                if message.channel.id in config['features']['message_autodelete'].get('channels_id'):
+                if message.channel.id in [int(cid) for cid in config['features']['message_autodelete'].get('channels_id')]:
                     await asyncio.sleep(60*autodelete_duration)
                     await message.delete()
         
