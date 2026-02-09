@@ -59,6 +59,10 @@ Originally designed for a single specific server, this bot is now capable of bei
 
 - A feature for automatically adding on or multiple "member" role when a user join the server, based on the server configuration
 
+- A bump reminder feature who detect messages from Distboard and then remind staff to bump 2 hours after.
+
+- A message autodeletion feature in some channels to keep them clean.
+
 ---
 
 ## 💻 Useful bash command
