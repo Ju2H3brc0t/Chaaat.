@@ -10,9 +10,6 @@ class OnMessage(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
-    
-        if message.author.bot:
-            return
 
         guild_id = message.guild.id
         config_path = f'server_configs/{guild_id}/config.yaml'
@@ -33,12 +30,13 @@ class OnMessage(commands.Cog):
             print(f"⚠️ Data file not found for guild {guild_id}.")
             return
 
-        try:
-            with open(user_data_path, 'r') as json_file:
-                user_data = json.load(json_file)
-        except FileNotFoundError:
-            print(f"⚠️ User data file not found for user {message.author.id} in guild {guild_id}.")
-            return
+        if not message.author.bot:
+            try:
+                with open(user_data_path, 'r') as json_file:
+                    user_data = json.load(json_file)
+            except FileNotFoundError:
+                print(f"⚠️ User data file not found for user {message.author.id} in guild {guild_id}.")
+                return
 
         counting_enabled = bool(config['features']['counting'].get('enabled'))
         reset_if_wrong_user = bool(config['features']['counting'].get('reset_if_wrong_user'))
@@ -61,11 +59,11 @@ class OnMessage(commands.Cog):
         language = str(config['features'].get('language'))
 
         if counting_enabled is True:
-            if message.author.bot:
-                return
             channel_id = int(config['features']['counting'].get('channel_id'))
             current_count = int(data.get('counting', 0))
             if message.channel.id == channel_id:
+                if message.author.bot:
+                    return
                 expected_count = int(current_count + 1)
                 last_user_id = data.get('last_user_id', 0)
                 try:
@@ -120,9 +118,9 @@ class OnMessage(commands.Cog):
                         await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
         
         if level_enabled is True:
-            if message.author.bot:
-                return
             if not excluded_channels or message.channel.id not in excluded_channels:
+                if message.author.bot:
+                    return
                 current_lvl = int(user_data.get('level'))
                 current_xp = int(user_data.get('experience'))
                 reward_role = None
