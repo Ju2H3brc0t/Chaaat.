@@ -59,11 +59,11 @@ class OnMessage(commands.Cog):
         language = str(config['features'].get('language'))
 
         if counting_enabled is True:
-            if message.author.bot:
-                return
             channel_id = int(config['features']['counting'].get('channel_id'))
             current_count = int(data.get('counting', 0))
             if message.channel.id == channel_id:
+                if message.author.bot:
+                    return
                 expected_count = int(current_count + 1)
                 last_user_id = data.get('last_user_id', 0)
                 try:
@@ -118,9 +118,9 @@ class OnMessage(commands.Cog):
                         await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
         
         if level_enabled is True:
-            if message.author.bot:
-                return
             if not excluded_channels or message.channel.id not in excluded_channels:
+                if message.author.bot:
+                    return
                 current_lvl = int(user_data.get('level'))
                 current_xp = int(user_data.get('experience'))
                 reward_role = None
