@@ -219,9 +219,16 @@ class OnMessage(commands.Cog):
                     channel = message.guild.get_channel(bump_reminder_channel_id)
                     await asyncio.sleep(7200)
                     if language == "fr":
-                        await channel.send("📲 Il est l'heure de bumper le serveur")
+                        embed_title = "⏰ Il est l'heure de bumper le serveur"
+                        embed_desc = "2h sont passée depuis le dernier bump, vous pouvez a nouveau bumper le serveur !"
                     else:
-                        await channel.send("📲 It's time to bump the server")
+                        embed_title = "⏰ It's bump time"
+                        embed_desc = "2h passed since the last bump, you can bump the server again !"
+                    embed = discord.Embed(title=embed_title,
+                                          description=embed_desc,
+                                          colour=discord.Color.blurple())
+
+                    await channel.send(embed=embed)
 
                 self.client.loop.create_task(reminder())
 
