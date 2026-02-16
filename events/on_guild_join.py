@@ -30,8 +30,6 @@ class OnGuildJoin(commands.Cog):
                     'boost_channels': [0],
                     'default_level': 0,
                     'rewards': {
-                        '0': 0,
-                        '0': 0,
                         '0': 0
                     },
                     'rewards_stackable': False,
