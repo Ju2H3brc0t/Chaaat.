@@ -113,7 +113,7 @@ async def load_config(guild_id: int, auto_create: bool = True):
             os.makedirs(path, exist_ok=True)
             with open(file_path, 'w', encoding='utf-8') as f:
                 yaml.dump(DEFAULT_CONFIG, f, allow_unicode=True)
-            return DEFAULT_CONFIG(f)
+            return DEFAULT_CONFIG
         else:
             return None
     
@@ -129,7 +129,7 @@ async def load_data(guild_id: int, auto_create: bool = True):
             os.makedirs(path, exist_ok=True)
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(DEFAULT_JSON, f, allow_unicode=True)
-            return DEFAULT_CONFIG(f)
+            return DEFAULT_JSON
         else:
             return None
     
