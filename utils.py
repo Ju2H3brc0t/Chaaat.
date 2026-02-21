@@ -25,7 +25,7 @@ DEFAULT_CONFIG = {
             'exclude_channels': [0],
             'boost_channels': [0],
             'default_level': 0,
-            'rewards': {'0': 0},
+            'rewards': {'0': 0, '1': 1},
             'rewards_stackable': False,
             'announcement': {
                 'enabled': False,
@@ -54,10 +54,8 @@ DEFAULT_CONFIG = {
 }
 
 DEFAULT_JSON = {
-    'level': 1,
-    'experience': 0,
-    'birthday': '0',
-    'last_gift': [0]
+    'counting': 0,
+    'last_user_id': 0
 }
 
 async def init_db():
@@ -134,6 +132,9 @@ async def load_data(guild_id: int, auto_create: bool = True):
             return DEFAULT_CONFIG(f)
         else:
             return None
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return json.load
 
 async def translate(text: str, dest_lng: str):
     if dest_lng != "en":
