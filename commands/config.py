@@ -90,9 +90,7 @@ class Config(commands.Cog):
         with open(config_file_path, 'w', encoding='utf-8') as f:
             yaml.dump(config, f, allow_unicode=True)
 
-        intro_success_message = await translate(f"✅ Key ")
-        outro_success_message = await translate(f" updated successfully !")
-        success_message = f'{intro_success_message}{path}{outro_success_message}'
+        success_message = await translate(f"✅ Key <span class=notranslate>{path}</span> updated successfully !")
 
         await interaction.response.send_message(success_message)
 

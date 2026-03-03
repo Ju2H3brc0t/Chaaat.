@@ -76,21 +76,20 @@ class Dev(commands.Cog):
                 if extension in client.extensions:
                     await client.reload_extension(extension)
 
-                    intro_reloaded_extension_message = await translate(text="📁 Reloaded extension: ", dest_lng=language)
-                    loaded_extension_message = f"{intro_reloaded_extension_message}{extension}"
+                    reloaded_extension_message = await translate(text=f"📁 Reloaded extension: <span class=notranslate>{extension}</span>", dest_lng=language)
 
-                    response.append(loaded_extension_message)
+                    response.append(reloaded_extension_message)
                 else:
                     await client.load_extension(extension)
 
-                    intro_loaded_extension_message = await translate(text="📂 Loaded extension: ", dest_lng=language)
-                    loaded_extension_message = f"{intro_loaded_extension_message}{extension}"
+                    loaded_extension_message = await translate(text=f"📂 Loaded extension: <span class=notranslate>{extension}</span>", dest_lng=language)
+
+                    response.append(loaded_extension_message)
 
             except Exception as e:
-                intro_error_loaded_extenion_message = await translate(text="⚠️ Failed to load extension ", dest_lng=language)
-                error_loaded_extension_message = f"{intro_error_loaded_extenion_message}{extension}: {e}"
+                error_loaded_extenion_message = await translate(text=f"⚠️ Failed to load extension <span class=notranslate>{extension}: {e}</span>", dest_lng=language)
 
-                response.append(error_loaded_extension_message)
+                response.append(error_loaded_extenion_message)
 
         try:
             synced = await client.tree.sync()
@@ -99,8 +98,7 @@ class Dev(commands.Cog):
 
             response.append(synced_message)
         except Exception as e:
-            intro_error_synced_message = await translate(text="⚠️ Failed to sync commands: ", dest_lng=language)
-            error_synced_message = f"{intro_error_synced_message}{e}"
+            error_synced_message = await translate(text=f"⚠️ Failed to sync commands: <span class=notranslate>{e}</span>", dest_lng=language)
 
             response.append(error_synced_message)
 

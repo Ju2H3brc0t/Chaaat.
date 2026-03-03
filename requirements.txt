@@ -3,3 +3,4 @@ discord.py == 2.6.4
 pyyaml == 6.0.1
 googletrans == 4.0.2
 aiosqlite == 0.22.1
+simpleeval == 1.0.3

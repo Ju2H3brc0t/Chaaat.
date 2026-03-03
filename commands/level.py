@@ -45,11 +45,11 @@ class Level(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        current_lvl = get_user_from_db(data_to_get="level", user_id=interaction.user_id, guild_id=interaction.guild_id)
-        current_xp = get_user_from_db(data_to_get="xp", user_id=interaction.user_id, guild_id=interaction.guild_id)
+        current_lvl = await get_user_from_db(data_to_get="level", user_id=interaction.user_id, guild_id=interaction.guild_id)
+        current_xp = await get_user_from_db(data_to_get="xp", user_id=interaction.user_id, guild_id=interaction.guild_id)
         xp_required = 5*(current_lvl**2)
         xp_to_next = xp_required - current_xp
-        rank = await self.get_user_rank()
+        rank = await self.get_user_rank(interaction)
 
         embed_title = await translate(text="📊 Level and Experience", dest_lng=language)
         embed_desciption = await translate(text=f"You are currently at level **{current_lvl}** with **{current_xp}** points.\nTo advance to the next level you need **{xp_to_next}** more experience points.\n\nYour currently number **{rank}** at the the rankings.", dest_lng=language)
@@ -69,7 +69,7 @@ class Level(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        top_players = await self.get_leaderboard()
+        top_players = await self.get_leaderboard(interaction)
 
         if not top_players:
             no_data_message = await translate(text="⁉️ No data available for now, please try again later...", dest_lng=language)
@@ -78,7 +78,7 @@ class Level(commands.Cog):
         description = ""
         for index, (user_id, xp, level) in enumerate(top_players, start=1):
             intro_description = f"**{index}.** <@{user_id}> -"
-            outro_description = await translate(text=f" **Niveau {level} ({xp} XP)**")
+            outro_description = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
             description += f"{intro_description}{outro_description}\n"
         
         embed_title = await translate(text="🏆 Leaderboard for the server ", dest_lng=language)

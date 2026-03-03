@@ -104,6 +104,18 @@ async def get_user_from_db(data_to_get: str, user_id: int, guild_id: int):
         await add_users_to_db(user_id=user_id, guild_id=guild_id)
         return await get_user_from_db(data_to_get=data_to_get, user_id=user_id, guild_id=guild_id)
 
+async def remove_guild_from_db(guild_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("DELETE FROM user_data WHERE guild_id = ?", (guild_id,))
+
+        await db.commit()
+
+async def remove_user_from_db(user_id: int, guild_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("DELETE FROM user_data WHERE user_id = ? AND guild_id = ?", (user_id, guild_id))
+
+        await db.commit
+
 async def load_config(guild_id: int, auto_create: bool = True):
     path = f'server_configs/{guild_id}'
     file_path = f'{path}/config.yaml'

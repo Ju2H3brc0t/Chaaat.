@@ -1,236 +1,199 @@
+from utils import update_db, get_user_from_db, load_config, load_data, translate
 import discord
 from discord.ext import commands
+from simpleeval import SimpleEval
 import asyncio
-import yaml
 import json
+
 
 class OnMessage(commands.Cog):
     def __init__(self, client):
         self.client = client
     
-    @commands.Cog.listener()
-    async def on_message(self, message):
-
-        guild_id = message.guild.id
-        config_path = f'server_configs/{guild_id}/config.yaml'
-        data_path = f'server_configs/{guild_id}/data.json'
-        user_data_path = f'server_configs/{guild_id}/{message.author.id}.json'
-
-        try:
-            with open(config_path, 'r') as yaml_file:
-                config = yaml.safe_load(yaml_file)
-        except FileNotFoundError:
-            print(f"⚠️ Config file not found for guild {guild_id}.")
-            return
-
-        try:
-            with open(data_path, 'r') as json_file:
-                data = json.load(json_file)
-        except FileNotFoundError:
-            print(f"⚠️ Data file not found for guild {guild_id}.")
-            return
-
-        if not message.author.bot:
-            try:
-                with open(user_data_path, 'r') as json_file:
-                    user_data = json.load(json_file)
-            except FileNotFoundError:
-                print(f"⚠️ User data file not found for user {message.author.id} in guild {guild_id}.")
-                return
-
-        counting_enabled = bool(config['features']['counting'].get('enabled'))
-        reset_if_wrong_user = bool(config['features']['counting'].get('reset_if_wrong_user'))
-
-        level_enabled = bool(config['features']['leveling'].get('enabled'))
-        rewards = config['features']['leveling'].get('rewards')
-        rewards_stackable = bool(config['features']['leveling'].get('rewards_stackable'))
-        excluded_channels = config['features']['leveling'].get('exclude_channels')
-        boosted_channels = config['features']['leveling'].get('boost_channels')
-        announcement_enabled = bool(config['features']['leveling']['announcement'].get('enabled'))
-        announcement_channel_id = int(config['features']['leveling']['announcement'].get('channel_id'))
+    async def message_autodelete(self, message):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
 
         autodelete_enabled = bool(config['features']['message_autodelete'].get('enabled'))
-        autodelete_duration = int(config['features']['message_autodelete'].get('wait_m'))
+        autodelete_wait_duration = int(config['features']['message_autodelete'].get('wait'))
 
-        bump_reminder_enabled = bool(config['features']['bump_reminder'].get('enabled'))
-        bump_reminder_channel_id = int(config['features']['bump_reminder'].get('channel_id'))
-
-
-        language = str(config['features'].get('language'))
-
-        if counting_enabled is True:
-            channel_id = int(config['features']['counting'].get('channel_id'))
-            current_count = int(data.get('counting', 0))
-            if message.channel.id == channel_id:
-                if not message.author.bot:
-                    expected_count = int(current_count + 1)
-                    last_user_id = data.get('last_user_id', 0)
-                    try:
-                        user_count = int(message.content)
-                    except ValueError:
-                        if language == "fr":
-                            await message.channel.send(f"{message.author.mention}, veuillez envoyer un nombre valide.\n-# Le nombre suivant est {expected_count}.")
-                        else:
-                            await message.channel.send(f"{message.author.mention}, please send a valid number.\n-# Next number is {expected_count}.")
-                        return
-
-                    if user_count != expected_count:
-                        await message.add_reaction("❌")
-                        if language == "fr":
-                            await message.channel.send(f"{message.author.mention} a fait une erreur, le compteur a été réinitialisé.\n-# Le nombre suivant est 1.")
-                        else:
-                            await message.channel.send(f"{message.author.mention} made a mistake, the counter was reset.\n-# Next number is 1.")
-                        data['counting'] = 0
-                        data['last_user_id'] = 0
-                        with open(data_path, 'w') as json_file:
-                            json.dump(data, json_file, indent=4)
-                    elif message.author.id == last_user_id:
-                        await message.add_reaction("❌")
-                        if reset_if_wrong_user == True:
-                            data['counting'] = 0
-                            data['last_user_id'] = 0
-                            with open(data_path, 'w') as json_file:
-                                json.dump(data, json_file, indent=4)
-                            if language == "fr":
-                                await message.channel.send(f"{message.author.mention}, vous ne pouvez pas compter deux nombres d'affilée, le compteur a été réinitialisé.\n-# Le nombre suivant est 1.")
-                        elif language == "fr" and reset_if_wrong_user == False:
-                            await message.channel.send(f"{message.author.mention}, vous ne pouvez pas compter deux nombres d'affilée !\n-# Le nombre suivant est {expected_count}.")
-                        elif language != "fr" and reset_if_wrong_user == False:
-                            await message.channel.send(f"{message.author.mention}, you cannot count two numbers in a row!\n-# Next number is {expected_count}.")
-                    elif user_count == expected_count and user_count == 100 and message.author.id != last_user_id:
-                        await message.add_reaction("💯")
-                        data['counting'] = int(expected_count)
-                        data['last_user_id'] = message.author.id
-                        with open(data_path, 'w') as json_file:
-                            json.dump(data, json_file, indent=4)
-                    elif user_count == expected_count and message.author.id != last_user_id:
-                        await message.add_reaction("✅")
-                        data['counting'] = int(expected_count)
-                        data['last_user_id'] = message.author.id
-                        with open(data_path, 'w') as json_file:
-                            json.dump(data, json_file, indent=4)
-                    else:
-                        await message.add_reaction("❓")
-                        if language == "fr":
-                            await message.channel.send(f"⚠️ {message.author.mention}, une erreur inattendue est survenue, veuillez réessayer plus tard.")
-                        else:
-                            await message.channel.send(f"⚠️ {message.author.mention}, an unexpected error occurred, please try again later.")
-
-                else:
-                    pass
-        
-        if level_enabled is True:
-            if not excluded_channels or message.channel.id not in excluded_channels:
-                if not message.author.bot:
-                    current_lvl = int(user_data.get('level'))
-                    current_xp = int(user_data.get('experience'))
-                    reward_role = None
-
-                    xp_to_next = 5 * (current_lvl ** 2) + 50 * current_lvl + 100
-                    next_lvl = current_lvl +1
-
-                    if current_lvl >= 100:
-                        return
-                
-                    if current_xp >= xp_to_next:
-                        user_data['level'] = int(current_lvl + 1)
-                        user_data['experience'] = int(current_xp - xp_to_next)
-                        with open(user_data_path, 'w') as json_file:
-                            json.dump(user_data, json_file, indent=4)
-                        if rewards is not None:
-                            levels = sorted(map(int, rewards.keys()))
-
-                            if next_lvl in levels:
-                                role_id = message.guild.get_role(int(rewards[str(next_lvl)]))
-
-                                if role_id is not None:
-                                    if rewards_stackable is True:
-                                        await message.author.add_roles(role_id)
-                                    else:
-                                        index = levels.index(next_lvl)
-
-                                        if index == 0:
-                                            default_role = message.guild.get_role(int(config['features']['leveling'].get('default_level')))
-                                            if default_role and default_role in message.author.roles:
-                                                await message.author.remove_roles(default_role)
-                                        else:
-                                            previous_lvl = levels[index - 1]
-                                            previous_role = message.guild.get_role(int(rewards[str(previous_lvl)]))
-                                            if previous_role and previous_role in message.author.roles:
-                                                await message.author.remove_roles(previous_role)
-                                    
-                                        await message.author.add_roles(role_id)
-                                    reward_role = role_id
-
-                        if announcement_enabled is True:
-                            channel = message.guild.get_channel(announcement_channel_id)
-                            xp_to_next_in_announcement = 5 * (next_lvl ** 2) + 50 * next_lvl + 100
-                            if language == "fr":
-                                if reward_role is not None:
-                                    embed_title = "🎉 Nouveau niveau atteint !"
-                                    embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau **{next_lvl}** !\nPour passer au niveau suivant, vous avez besoin de **{xp_to_next_in_announcement}** exp.\n\n-#🏅 Vous avez gagné le rôle {reward_role.mention}."
-                                else:
-                                    embed_title = "🎉 Nouveau niveau atteint !"
-                                    embed_description = f"Félicitations {message.author.mention}, vous avez atteint le niveau **{next_lvl}** !\nPour passer au niveau suivant, vous avez besoin de **{xp_to_next_in_announcement}** exp."
-                            else:
-                                if reward_role is not None:
-                                    embed_title = "🎉 New level reached!"
-                                    embed_description = f"Congratulations {message.author.mention}, you have reached level **{next_lvl}**!\nTo advance to the next level, you need **{xp_to_next_in_announcement}** exp.\n\n-#🏅 You have earned the role {reward_role.mention}."
-                                else:
-                                    embed_title = "🎉 New level reached!"
-                                    embed_description = f"Congratulations {message.author.mention}, you have reached level **{next_lvl}**!\nTo advance to the next level, you need **{xp_to_next_in_announcement}** exp."
-
-                            embed = discord.Embed(title=embed_title,
-                                                description=embed_description,
-                                                colour=discord.Color.gold(),
-                                                timestamp=discord.utils.utcnow())
-                        
-                            embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
-
-                            await channel.send(embed=embed)
-                
-                    else:
-                        xp_gain = 0
-                        if not boosted_channels or message.channel.id not in boosted_channels:
-                            xp_gain = 1
-                        else:
-                            xp_gain = 2
-                        user_data['experience'] = int(current_xp + xp_gain)
-                        with open(user_data_path, 'w') as json_file:
-                            json.dump(user_data, json_file, indent=4)
-
-                else:
-                    pass
-
-        if autodelete_enabled is True:
+        if autodelete_enabled:
             async def autodelete():
-                    if message.channel.id in [int(cid) for cid in config['features']['message_autodelete'].get('channels_id')]:
-                        await asyncio.sleep(60*autodelete_duration)
-                        try:
-                            await message.delete()
-                        except discord.NotFound:
-                            pass
+                if message.channel.id in [int(cid) for cid in config['features']['message_autodelete'].get('channels_id')]:
+                    await asyncio.sleep(60*autodelete_wait_duration)
+                    try:
+                        await message.delete()
+                    except discord.NotFound:
+                        pass
         
             self.client.loop.create_task(autodelete())
-        
-        if bump_reminder_enabled is True:
-            if message.author.id == 302050872383242240:
-                async def reminder():
-                    channel = message.guild.get_channel(bump_reminder_channel_id)
-                    await asyncio.sleep(7200)
-                    if language == "fr":
-                        embed_title = "⏰ Il est l'heure de bumper le serveur"
-                        embed_desc = "2h sont passée depuis le dernier bump, vous pouvez a nouveau bumper le serveur !"
-                    else:
-                        embed_title = "⏰ It's bump time"
-                        embed_desc = "2h passed since the last bump, you can bump the server again !"
+
+    async def bump_reminder(self, message):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+
+        bump_reminder_enabled = bool(config['features']['bump_reminder'].get['enabled'])
+
+        if message.author.id == 302050872383242240 and bump_reminder_enabled:
+            async def reminder():
+                channel = message.guild.get_channel(message.channel.id)
+                await asyncio.sleep(7200)
+                embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
+                embed_description = "Two hours passed since the last bump, you can bump the server again"
+
+                embed = discord.Embed(title=embed_title,
+                                      description=embed_description,
+                                      colour=discord.Color.blurple(),
+                                      timestamp=discord.utils.utcnow())
+                
+                await channel.send(embed=embed)
+            
+            self.client.loop.create_task(reminder())
+
+    async def leveling(self, message):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+
+        leveling_enabled = bool(config['features']['leveling'].get('enabled'))
+        exclude_channels = [int(channel) for channel in config['features']['leveling'].get('exclude_channels')]
+        boost_channels = [int(channel) for channel in config['features']['leveling'].get('boost_channels')]
+        current_level = await get_user_from_db(data_to_get="level", user_id=message.author.id, guild_id=message.guild.id)
+        current_xp = await get_user_from_db(data_to_get="xp", user_id=message.author.id, guild_id=message.guild.id)
+        xp = current_xp
+        xp_required = 5*(current_level**2)
+        rewards = config['features']['leveling'].get('rewards')
+        channel_id = int(config['features']['leveling'].get('announcement_channel_id'))
+        channel = message.guild.get_channel(channel_id)
+
+        if leveling_enabled and not message.author.bot:
+            if not message.channel.id in exclude_channels and not message.channel.id in boost_channels: 
+                await update_db(column="xp", value=current_xp + 1, user_id=message.author.id, guild_id=message.guild.id)
+                xp = current_xp + 1
+            elif not message.channel.id in exclude_channels and message.channel.id in boost_channels: 
+                await update_db(column="xp", value=current_xp + 2, user_id=message.author.id, guild_id=message.guild.id)
+                xp = current_xp + 2
+            if xp == xp_required:
+                await update_db(column="level", value=current_level + 1)
+                role_id = rewards.get(current_level)
+                if role_id:
+                    role = message.guild.get_role(int(role_id))
+                    if role:
+                        await message.author.add_roles(role)
+                        embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
+                        embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** anf have earned the role <span class=notranslate>{role.mention}</span> !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
+                else:
+                    embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
+
                     embed = discord.Embed(title=embed_title,
-                                          description=embed_desc,
-                                          colour=discord.Color.blurple())
+                                          description=embed_description,
+                                          colour=discord.Color.gold(),
+                                          timestamp=discord.utils.utcnow())
+
+                    embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
 
                     await channel.send(embed=embed)
 
-                self.client.loop.create_task(reminder())
+    async def counting(self, message):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+        data = await load_data(guild_id=message.guild.id, auto_create=True)
+        data_path = f'server_configs/{message.guild.id}/data.json'
+
+        counting_enabled = bool(config['features']['counting'].get('enabled'))
+        channel_id = int(config['features']['counting'].get('channel_id'))
+        checkpoints = bool(config['features']['counting'].get('checkpoints'))
+        current_count = int(data.get('counting', None))
+        last_user_id = int(data.get('last_user_id', None))
+
+        s = SimpleEval()
+        import math
+        s.functions = {
+            "sqrt": math.sqrt,
+            "abs": abs,
+            "fact": math.factorial,
+            "cos": math.cos,
+            "sin": math.sin,
+            "pi": math.pi,
+            "π": math.pi,
+            "e": math.e,
+            "tau": math.tau,
+            "τ": math.tau,
+            "phi": (1 + math.sqrt(5)) / 2,
+            "φ": (1 + math.sqrt(5)) / 2,
+            "binary": lambda x: int(str(x).strip("'").strip('"'), 2)
+        }
+
+        if counting_enabled and channel_id == message.channel.id and not message.author.bot:
+            if current_count == None:
+                unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
+                await message.channel.send(unexpected_error_message)
+                return
+            
+            expected_count = current_count + 1
+
+            try:
+                clean_content = message.content.strip().replace("`", "")
+                result = s.eval(clean_content)
+                count = int(result)
+            except ValueError:
+                value_error_message = await translate(text=f"<span class=notranslate>{message.author.mention}</span>, please send a valid number\n-# Next number is {expected_count}", dest_lng=language)
+                await message.channel.send(value_error_message)
+                return
+            
+            if current_count % 100 == 0:
+                is_checkpoint = True
+            else:
+                is_checkpoint = False
+
+            if expected_count % 100 == 0:
+                will_be_checkpoint = True
+            else:
+                will_be_checkpoint = False
+
+            previous_checkpoint = current_count - (current_count % 100)
+
+            if count == expected_count and message.author.id != last_user_id:
+                await message.add_reaction("✅")
+                if count == 100: await message.add_reaction("💯")
+                if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
+                data['counting'] = int(expected_count)
+                data['last_user_id'] = message.author.id
+                with open(data_path, 'w') as f:
+                    json.dump(data, f, indent=4)
+            elif count != expected_count or message.author.id == last_user_id:
+                await message.add_reaction("❌")
+                if checkpoints:
+                    if is_checkpoint:
+                        wrong_but_is_checkpoint = await translate(text=f"<span class=notranslate>{message.author.mention}</span> made a mistake, but the preceding number is a checkpoint\n-# Next number is {expected_count}", dest_lng=language)
+                        await message.channel.send(wrong_but_is_checkpoint)
+                        data['counting'] = previous_checkpoint
+                        data['last_user_id'] = None
+                        with open(data_path, 'w') as f:
+                            json.dump(data, f, indent=4)
+                        return
+                    wrong_but_checkpoint = await translate(text=f"<span class=notranslate>{message.author.mention}</span> made a mistake, the counter has returned to the previous checkpoint\n-# Next number is {previous_checkpoint + 1}", dest_lng=language)
+                    await message.channel.send(wrong_but_checkpoint)
+                    data['counting'] = previous_checkpoint
+                    data['last_user_id'] = previous_checkpoint
+                    with open(data_path, 'w') as f:
+                        json.dump(data, f, indent=4)
+                else:
+                    wrong_message = await translate(text=f"<span class=notranslate>{message.author.mention}</span> made a mistake, the counter has been reset\n-# Next number is 1", dest_lng=language)
+                    await message.channel.send(wrong_message)
+                    data['counting'] = 0
+                    data['last_user_id'] = None
+                    with open(data_path, 'w') as f:
+                        json.dump(data, f, indent=4)
+            else:
+                await message.add_reaction("❓")
+                unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
+                await message.channel.send(unexpected_error_message)
+    
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        await self.message_autodelete(message=message)
+        await self.bump_reminder(message=message)
+        await self.leveling(message=message)
+        await self.counting(message=message)
 
 async def setup(client):
     await client.add_cog(OnMessage(client))
