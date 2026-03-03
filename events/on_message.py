@@ -132,8 +132,12 @@ class OnMessage(commands.Cog):
 
             try:
                 clean_content = message.content.strip().replace("`", "")
-                result = s.eval(clean_content)
+                result = asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
                 count = int(result)
+            except asyncio.TimeoutError:
+                timeout_message = await translate(text=f"🥀 This calculation is too complex\n-# Next number is {expected_count}", dest_lng=language)
+                await message.channel.send(value_error_message)
+                return
             except ValueError:
                 value_error_message = await translate(text=f"<span class=notranslate>{message.author.mention}</span>, please send a valid number\n-# Next number is {expected_count}", dest_lng=language)
                 await message.channel.send(value_error_message)
