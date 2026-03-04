@@ -1,3 +1,4 @@
+from utils import init_db
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -32,6 +33,12 @@ for folder in folders:
 @client.event
 async def setup_hook():
     try:
+        await init_db()
+        print(f'📦 Database charged successfully')
+    except Exception as e:
+        print(f'⚠️ Failed to load database: {e}')
+
+    try:
         synced = await client.tree.sync()
         print(f'🌐 Synced {len(synced)} command(s)')
     except Exception as e:
@@ -45,7 +52,7 @@ async def main():
     for extension in initial_extensions:
         try:
             await client.load_extension(extension)
-            print(f'📦 Loaded extension: {extension}')
+            print(f'📂 Loaded extension: {extension}')
         except Exception as e:
             print(f'⚠️ Failed to load extension {extension}: {e}.')
         

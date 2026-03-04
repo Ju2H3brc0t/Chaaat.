@@ -1,0 +1,39 @@
+features:
+  birthday:
+    announcement_channel_id: 0 # Where should the bot anounce birthday's
+    enabled: false # A feature to celebrate the birthday of a member 
+    gift:
+      enabled: false
+      role: []
+      temporary_role: []
+      xp: 0
+  bump_reminder:
+    channel: 0
+    enabled: false # A reminder for Disboard /bump command
+  counting:
+    channel_id: 0
+    checkpoints: false # A checkpoint every 100 messages; the bot will react with "🚩" at each checkpoint.
+    enabled: false # A game where users must send numbers in order and sequentially without anyone making a mistake or participating twice.
+  goodbye:
+    channel_id: 0
+    enabled: false
+  language: en # The language used by the bot
+  leveling:
+    announcement_channel_id: 0 # Where should the bot announce new levels
+    boost_channels: [] # 1 message = 2xp for channels in the list
+    enabled: true # 1 message = 1xp
+    exclude_channels: [] # 1 message = 0xp for channels in the list
+    rewards:
+      0: 0 # level: reward (role id)
+    rewards_stackable: false # If the bot has to remove the previous rewarded role
+  member_role:
+    enabled: false # A role that will be added to each new user
+    role_id: []
+  message_autodelete:
+    channels_id: [] # Autodeletion of messages in the list
+    enabled: false 
+    wait: 0 # For how long do the bot have to wait before deleting the message
+  welcome:
+    channel_id: 0
+    enabled: false
+    

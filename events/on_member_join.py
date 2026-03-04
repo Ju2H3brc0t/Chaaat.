@@ -1,7 +1,6 @@
+from utils import add_users_to_db, load_config, translate
 import discord
 from discord.ext import commands
-import yaml
-import json
 
 class OnMemberJoin(commands.Cog):
     def __init__(self, client):
@@ -10,31 +9,14 @@ class OnMemberJoin(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
 
-        guild_id = member.guild.id
-        config_path = f'server_configs/{guild_id}/config.yaml'
+        config = await load_config(guild_id=member.guild.id, auto_create=True)
+        language = config['features'].get('language', 'en')
 
-        default_json = {
-            'level': 1,
-            'experience': 0,
-            'birthday': '0',
-            'last_gift': [0]
-        }
-
-        try:
-            with open(config_path, 'r') as yaml_file:
-                config = yaml.safe_load(yaml_file)
-        except FileNotFoundError:
-            print(f"⚠️ Config file not found for guild {guild_id}.")
-            return
-
-        with open(f'server_configs/{guild_id}/{member.id}.json', 'w') as json_file:
-            json.dump(default_json, json_file, indent=4)
+        await add_users_to_db(member.id, member.guild.id)
 
         member_enabled = bool(config['features']['member_role'].get('enabled'))
         welcome_enabled = bool(config['features']['welcome'].get('enabled'))
         channel_id = int(config['features']['welcome'].get('channel_id'))
-
-        language = config['features'].get('language', 'en')
 
         if member_enabled is True:
             for role_id in config['features']['member_role'].get('role_id', []):
@@ -44,19 +26,19 @@ class OnMemberJoin(commands.Cog):
 
         if welcome_enabled is True:
             channel = self.client.get_channel(channel_id)
-            if language == 'fr':
-                embed_title = "Bienvenue !"
-                embed_description = f"Bonjour <@{member.id}>, bienvenue sur {member.guild.name} !\nLe serveur compte désormais {member.guild.member_count} membres."
-            else:
-                embed_title = "Welcome !"
-                embed_description = f"Hello <@{member.id}>, welcome to {member.guild.name} !\nThe server now has {member.guild.member_count} members."
+
+            embed_title = await translate(text="Welcome !", dest_lng=language)
+            embed_description_first_part = await translate(f"Hello")
+            embed_description_second_part = await translate(f", welcome to <span class=notranslate>{member.guild.name}</span> !\nThe server now have {member.guild.member_count} members")
+
             embed = discord.Embed(
                 title=embed_title,
-                description=embed_description,
+                description=f'{embed_description_first_part} {member.mention}{embed_description_second_part}',
                 color=discord.Color.teal(),
-                timestamp=discord.utils.utcnow()
-            )
+                timestamp=discord.utils.utcnow())
+            
             embed.set_thumbnail(url=member.display_avatar.url)
+            
             await channel.send(embed=embed)
 
 async def setup(client):
