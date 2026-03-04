@@ -27,7 +27,7 @@ else:
 
 for folder in folders:
     for filename in os.listdir(folder):
-        if filename.endswith('.py'):
+        if filename.endswith('.py') and not filename.startswith('__'):
             initial_extensions.append(f'{folder}.{filename[:-3]}')
 
 @client.event
@@ -37,6 +37,13 @@ async def setup_hook():
         print(f'📦 Database charged successfully')
     except Exception as e:
         print(f'⚠️ Failed to load database: {e}')
+
+    for extension in initial_extensions:
+        try:
+            await client.load_extension(extension)
+            print(f'📂 Loaded extension: {extension}')
+        except Exception as e:
+            print(f'⚠️ Failed to load extension {extension}: {e}.')
 
     try:
         synced = await client.tree.sync()
@@ -49,14 +56,8 @@ async def on_ready():
     print(f'✅ Logged in as {client.user}')
 
 async def main():
-    for extension in initial_extensions:
-        try:
-            await client.load_extension(extension)
-            print(f'📂 Loaded extension: {extension}')
-        except Exception as e:
-            print(f'⚠️ Failed to load extension {extension}: {e}.')
-        
-    await client.start(token_str)
+    async with client:
+        await client.start(token_str)
 
 if __name__ == '__main__':
     asyncio.run(main())

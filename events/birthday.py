@@ -86,7 +86,7 @@ class BirthdayVerification(commands.Cog):
                         if roles:
                             roles_to_add = [guild.get_role(r) for r in roles if guild.get_role(r)]
 
-                            await user.add_roles(*roles)
+                            await user.add_roles(*roles_to_add)
 
                         if temporary_role:
                             roles_to_add = [guild.get_role(r) for r in temporary_role if guild.get_role(r)]

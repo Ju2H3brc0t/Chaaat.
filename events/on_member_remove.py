@@ -17,7 +17,7 @@ class OnMemberRemove(commands.Cog):
         channel_id = int(config['features']['goodbye'].get('channel_id'))
 
         if goodbye_enabled is True:
-            channel = self.client.fetch_channel(channel_id)
+            channel = await self.client.fetch_channel(channel_id)
 
             embed_title = await translate(text="Goodbye !", dest_lng=language)
             embed_description = await translate(text=f"has left the server")
