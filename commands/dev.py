@@ -43,7 +43,7 @@ class Dev(commands.Cog):
             await interaction.followup.send(subprocess_text, ephemeral=True)
         except subprocess.CalledProcessError as e:
             intro_error_message = await translate(text="❌ Git Error: ", dest_lng=language)
-            error_msg = f"{intro_error_message}{e.stderr.decode()}"
+            error_msg = f"{intro_error_message}{e.stderr}"
 
             await interaction.followup.send(error_msg, ephemeral=True)
     
@@ -67,20 +67,24 @@ class Dev(commands.Cog):
                 if extension in client.extensions:
                     await client.reload_extension(extension)
 
-                    reloaded_extension_message = await translate(text=f"📁 Reloaded extension: <span class=notranslate>{extension}</span>", dest_lng=language)
+                    reloaded_extension_message_first_part = await translate(text=f"📁 Reloaded extension:", dest_lng=language)
+                    reloaded_extension_message = f'{reloaded_extension_message_first_part} {extension}'
 
                     response.append(reloaded_extension_message)
                 else:
                     await client.load_extension(extension)
 
-                    loaded_extension_message = await translate(text=f"📂 Loaded extension: <span class=notranslate>{extension}</span>", dest_lng=language)
+                    loaded_extension_message_first_part = await translate(text=f"📂 Loaded extension:", dest_lng=language)
+                    loaded_extension_message = f'{loaded_extension_message_first_part} {extension}'
 
                     response.append(loaded_extension_message)
 
             except Exception as e:
-                error_loaded_extenion_message = await translate(text=f"⚠️ Failed to load extension <span class=notranslate>{extension}: {e}</span>", dest_lng=language)
+                error_loaded_extension_message_first_part = await translate(text=f"⚠️ Failed to load extension", dest_lng=language)
+                error_loaded_extension_message_second_part = f'{extension}: {e}'
+                error_loaded_extension_message = f'{error_loaded_extension_message_first_part} {error_loaded_extension_message_second_part}'
 
-                response.append(error_loaded_extenion_message)
+                response.append(error_loaded_extension_message)
 
         try:
             synced = await client.tree.sync()
@@ -89,7 +93,8 @@ class Dev(commands.Cog):
 
             response.append(synced_message)
         except Exception as e:
-            error_synced_message = await translate(text=f"⚠️ Failed to sync commands: <span class=notranslate>{e}</span>", dest_lng=language)
+            error_synced_message_first_part = await translate(text=f"⚠️ Failed to sync commands:", dest_lng=language)
+            error_synced_message = f'{error_synced_message_first_part} {e}'
 
             response.append(error_synced_message)
 

@@ -90,7 +90,10 @@ class Config(commands.Cog):
         with open(config_file_path, 'w', encoding='utf-8') as f:
             yaml.dump(config, f, allow_unicode=True)
 
-        success_message = await translate(f"✅ Key <span class=notranslate>{path}</span> updated successfully !")
+        success_message_first_part = await translate(text="✅ Key", dest_lng=language)
+        success_message_second_part = await translate(text="updated successfully !", dest_lng=language)
+        success_message = f'{success_message_first_part} {path} {success_message_second_part}'
+
 
         await interaction.response.send_message(success_message)
 
@@ -105,7 +108,7 @@ class Config(commands.Cog):
         with open(config_file_path, 'w', encoding='utf-8') as f:
             yaml.dump(DEFAULT_CONFIG, f, allow_unicode=True)
 
-        confirm_message = await translate(f"✅ Configuration has been reset to default values", dest_lng=language)
+        confirm_message = await translate(text=f"✅ Configuration has been reset to default values", dest_lng=language)
         await interaction.response.send_message(confirm_message)
 
     @config_group.command(name="help", description="get some help with the configs editor")

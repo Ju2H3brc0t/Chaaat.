@@ -123,7 +123,7 @@ async def remove_user_from_db(user_id: int, guild_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("DELETE FROM user_data WHERE user_id = ? AND guild_id = ?", (user_id, guild_id))
 
-        await db.commit
+        await db.commit()
 
 async def load_config(guild_id: int, auto_create: bool = True):
     path = f'server_configs/{guild_id}'
@@ -139,7 +139,7 @@ async def load_config(guild_id: int, auto_create: bool = True):
             return None
     
     with open(file_path, 'r', encoding='utf-8') as f:
-        return yaml.safe_load
+        return yaml.safe_load(f)
 
 async def load_data(guild_id: int, auto_create: bool = True):
     path = f'server_configs/{guild_id}'
@@ -155,7 +155,7 @@ async def load_data(guild_id: int, auto_create: bool = True):
             return None
     
     with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load
+        return json.load(f)
 
 async def translate(text: str, dest_lng: str):
     if dest_lng != "en":
@@ -163,4 +163,4 @@ async def translate(text: str, dest_lng: str):
     else:
         result = text
     
-    return result
+    return result.text

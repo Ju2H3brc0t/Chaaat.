@@ -13,7 +13,6 @@ class OnMessage(commands.Cog):
     
     async def cog_load(self):
         self.evaluator = SimpleEval()
-        print("✅ Evaluator loaded for on_message")
     
     async def check_active_tasks(self):
         await self.client.wait_until_ready()
@@ -30,12 +29,13 @@ class OnMessage(commands.Cog):
 
             end_time = data.get('next_bump', None)
             enabled = bool(config['features']['bump_reminder'].get('enabled'))
-            channel = int(config['features']['bump_reminder'].get('channel'))
+            channel_id = int(config['features']['bump_reminder'].get('channel'))
+            channel = await self.client.fetch_channel(channel_id)
 
             if enabled and end_time != "Anytime":
                 now = discord.utils.utcnow().timestamp()
                 if end_time > now:
-                    self.start_bump_reminder(guild_id=guild_id, end_time=end_time, channel_id=channel, language=language)
+                    self.client.loop.create_task(self.start_bump_reminder(guild_id=guild_id, end_time=end_time, channel_id=channel_id, language=language))
                 else:
                     embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
                     embed_description = "Two hours passed since the last bump, you can bump the server again"
@@ -83,13 +83,13 @@ class OnMessage(commands.Cog):
             with open(data_path, 'w') as f:
                 json.dump(data, f, indent=4)
             
-            await self.start_bump_reminder(message=message.guild.id, end_time=end_time, channel_id=channel, language=language)
+            self.client.loop.create_task(self.start_bump_reminder(guild_id=message.guild.id, end_time=end_time, channel_id=channel, language=language))
 
     async def start_bump_reminder(self, guild_id, end_time, channel_id, language):
         delay = end_time - discord.utils.utcnow().timestamp()
         await asyncio.sleep(delay)
 
-        guild = self.client.fetch_guild(guild_id)
+        guild = await self.client.fetch_guild(guild_id)
         if guild:
             channel = await guild.fetch_channel(channel_id)
             if channel:
@@ -144,10 +144,29 @@ class OnMessage(commands.Cog):
                             previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
                             roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
                             await message.author.remove_roles(*roles_to_remove)
-                        embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** anf have earned the role <span class=notranslate>{role.mention}</span> !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
+                        embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
+                        embed_description_first_part = await translate(text=f"Congratulation", dest_lng=language)
+                        embed_description_second_part = await translate(text=f", you reached level **{current_level + 1}** and have earned the role", dest_lng=language)
+                        embed_description_third_part = await translate(text=f"To advance to the next level you need **{5*((current_level+1)**2)}** more experience points", dest_lng=language)
+                        embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} {role.mention} !\n{embed_description_third_part}'
+
+                        embed = discord.Embed(title=embed_title,
+                            description=embed_description,
+                            colour=discord.Color.gold(),
+                            timestamp=discord.utils.utcnow())
+                        
+                        embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
+
+                        await channel.send(embed=embed)
+
+                        return
                 else:
                     embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
-                    embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
+                    embed_description_first_part = await translate(text=f"Congratulation", dest_lng=language)
+                    embed_description_second_part = await translate(text=f", you reached level **{current_level + 1}**", dest_lng=language)
+                    embed_description_third_part = await translate(text=f"To advance to the next level you need **{5*((current_level+1)**2)}** more experience points", dest_lng=language)
+                    embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} !\n{embed_description_third_part}'
+
 
                     embed = discord.Embed(title=embed_title,
                         description=embed_description,
@@ -168,16 +187,12 @@ class OnMessage(commands.Cog):
         channel_id = int(config['features']['counting'].get('channel_id'))
         checkpoints = bool(config['features']['counting'].get('checkpoints'))
         current_count = int(data.get('counting', None))
-        last_user_id = int(data.get('last_user_id', None))
+        raw = data.get('last_user_id')
+        last_user_id = int(raw) if raw is not None else None
 
         s = SimpleEval()
         import math
-        s.functions = {
-            "sqrt": math.sqrt,
-            "abs": abs,
-            "fact": math.factorial,
-            "cos": math.cos,
-            "sin": math.sin,
+        s.names = {
             "pi": math.pi,
             "π": math.pi,
             "e": math.e,
@@ -185,6 +200,13 @@ class OnMessage(commands.Cog):
             "τ": math.tau,
             "phi": (1 + math.sqrt(5)) / 2,
             "φ": (1 + math.sqrt(5)) / 2,
+        }
+        s.functions = {
+            "sqrt": math.sqrt,
+            "abs": abs,
+            "fact": math.factorial,
+            "cos": math.cos,
+            "sin": math.sin,
             "binary": lambda x: int(str(x).strip("'").strip('"'), 2)
         }
 
@@ -233,22 +255,22 @@ class OnMessage(commands.Cog):
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
-                        wrong_but_is_checkpoint = await translate(text=f"<span class=notranslate>{message.author.mention}</span> made a mistake, but the preceding number is a checkpoint\n-# Next number is {expected_count}", dest_lng=language)
-                        await message.channel.send(wrong_but_is_checkpoint)
+                        wrong_but_is_checkpoint = await translate(text=f"made a mistake, but the preceding number is a checkpoint\n-# Next number is {expected_count}", dest_lng=language)
+                        await message.channel.send(f"{message.author.mention} {wrong_but_is_checkpoint}")
                         data['counting'] = previous_checkpoint
                         data['last_user_id'] = None
                         with open(data_path, 'w') as f:
                             json.dump(data, f, indent=4)
                         return
-                    wrong_but_checkpoint = await translate(text=f"<span class=notranslate>{message.author.mention}</span> made a mistake, the counter has returned to the previous checkpoint\n-# Next number is {previous_checkpoint + 1}", dest_lng=language)
-                    await message.channel.send(wrong_but_checkpoint)
+                    wrong_but_checkpoint = await translate(text=f"made a mistake, the counter has returned to the previous checkpoint\n-# Next number is {previous_checkpoint + 1}", dest_lng=language)
+                    await message.channel.send(f"{message.author.mention} {wrong_but_checkpoint}")
                     data['counting'] = previous_checkpoint
                     data['last_user_id'] = previous_checkpoint
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
                 else:
-                    wrong_message = await translate(text=f"<span class=notranslate>{message.author.mention}</span> made a mistake, the counter has been reset\n-# Next number is 1", dest_lng=language)
-                    await message.channel.send(wrong_message)
+                    wrong_message = await translate(text=f"made a mistake, the counter has been reset\n-# Next number is 1", dest_lng=language)
+                    await message.channel.send(f"{message.author.mention} {wrong_message}")
                     data['counting'] = 0
                     data['last_user_id'] = None
                     with open(data_path, 'w') as f:

@@ -17,7 +17,7 @@ class Level(commands.Cog):
                     SELECT xp FROM user_data WHERE user_id = ? AND guild_id = ?
                 )
             '''
-            async with db.execute(query, (interaction.guild_id, interaction.user_id, interaction.guild_id)) as cursor:
+            async with db.execute(query, (interaction.guild_id, interaction.user.id, interaction.guild_id)) as cursor:
                 row = await cursor.fetchone()
                 if row:
                     return row[0]
@@ -43,13 +43,13 @@ class Level(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        level_enabled = bool(config['features']['birthday'].get('enabled'))
+        level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if level_enabled:
             await interaction.response.defer(ephemeral=True)
 
-            current_lvl = await get_user_from_db(data_to_get="level", user_id=interaction.user_id, guild_id=interaction.guild_id)
-            current_xp = await get_user_from_db(data_to_get="xp", user_id=interaction.user_id, guild_id=interaction.guild_id)
+            current_lvl = await get_user_from_db(data_to_get="level", user_id=interaction.user.id, guild_id=interaction.guild_id)
+            current_xp = await get_user_from_db(data_to_get="xp", user_id=interaction.user.id, guild_id=interaction.guild_id)
             xp_required = 5*(current_lvl**2)
             xp_to_next = xp_required - current_xp
             rank = await self.get_user_rank(interaction)
@@ -73,7 +73,7 @@ class Level(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        level_enabled = bool(config['features']['birthday'].get('enabled'))
+        level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if level_enabled:
             await interaction.response.defer(ephemeral=True)
@@ -83,10 +83,11 @@ class Level(commands.Cog):
             if not top_players:
                 no_data_message = await translate(text="⁉️ No data available for now, please try again later...", dest_lng=language)
                 await interaction.followup.send(no_data_message, ephemeral=True)
+                return
         
             description = ""
             for index, (user_id, xp, level) in enumerate(top_players, start=1):
-                guild = interaction.guild.id
+                guild = interaction.guild
                 member = await guild.fetch_member(user_id)
                 description_first_part = f"**{index}.** {member.mention} -"
                 description_second_part = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
