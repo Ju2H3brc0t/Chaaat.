@@ -1,9 +1,11 @@
 from utils import init_db
 import discord
+from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
 import os
+import traceback
 
 load_dotenv()
 
@@ -37,6 +39,7 @@ async def setup_hook():
         print(f'📦 Database charged successfully')
     except Exception as e:
         print(f'⚠️ Failed to load database: {e}')
+        traceback.print_exc()
 
     for extension in initial_extensions:
         try:
@@ -44,16 +47,25 @@ async def setup_hook():
             print(f'📂 Loaded extension: {extension}')
         except Exception as e:
             print(f'⚠️ Failed to load extension {extension}: {e}.')
+            traceback.print_exc()
 
     try:
         synced = await client.tree.sync()
         print(f'🌐 Synced {len(synced)} command(s)')
     except Exception as e:
         print(f'⚠️ Failed to sync commands: {e}')
+        traceback.print_exc()
 
 @client.event
 async def on_ready():
     print(f'✅ Logged in as {client.user}')
+
+@client.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    print(f"❌ Slash command error: {error}")
+    traceback.print_exc()
+    if not interaction.response.is_done():
+        await interaction.response.send_message(f"Error: `{error}`", ephemeral=True)
 
 async def main():
     async with client:

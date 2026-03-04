@@ -16,7 +16,7 @@ class Birthday(commands.Cog):
 
         birthday_enabled = bool(config['features']['birthday'].get('enabled'))
 
-        birthday = date
+        bday = date
 
         if birthday_enabled:
             await interaction.response.defer(ephemeral=True)
@@ -26,9 +26,9 @@ class Birthday(commands.Cog):
                 value_error_message = await translate(text="❌ Invalid date, DD/MM format required (ex: 25/12)", dest_lng=language)
                 return await interaction.followup.send(value_error_message, ephemeral=True)
         
-            await update_db(column="birthday", value=birthday, user_id=interaction.user_id, guild_id=interaction.guild_id)
+            await update_db(column="birthday", value=bday, user_id=interaction.user_id, guild_id=interaction.guild_id)
         
-            success_message = await translate(text=f"✅ Your birthday has been registered as {date}.")
+            success_message = await translate(text=f"✅ Your birthday has been registered as {date}.", dest_lng=language)
             await interaction.followup.send(success_message, ephemeral=True)
         else:
             not_activated_message = await translate(text="🧩 This feature is disabled on this server.", dest_lng=language)

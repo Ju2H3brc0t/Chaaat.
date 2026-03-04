@@ -1,6 +1,7 @@
 .env
 
 */__pycache__/
+/__pycache__/
 
 server_configs/*
 !server_configs/template

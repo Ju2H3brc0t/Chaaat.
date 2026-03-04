@@ -26,11 +26,13 @@ class BirthdayVerification(commands.Cog):
             if not guild: continue
 
             member = await guild.fetch_member(user_id)
-            if not member: await update_db(column="previous_temporary_gift", value=None, user_id=user_id, guild_id=guild_id)
+            if not member: 
+                await update_db(column="previous_temporary_gift", value=None, user_id=user_id, guild_id=guild_id)
+                continue
             
             if roles_string:
                 roles_ids = ast.literal_eval(roles_string)
-                roles_to_remove = [await guild.fetch_role(rid) for rid in roles_ids if await guild.fetch_role(rid)]
+                roles_to_remove = [guild.get_role(rid) for rid in roles_ids if guild.get_role(rid)]
 
                 if roles_to_remove:
                     await member.remove_roles(*roles_to_remove)
