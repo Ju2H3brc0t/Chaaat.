@@ -12,7 +12,7 @@ class OnMessage(commands.Cog):
         self.evaluator = None
     
     async def cog_load(self):
-        self.evaluator = SimpleEval
+        self.evaluator = SimpleEval()
         print("✅ Evaluator loaded for on_message")
     
     async def check_active_tasks(self):
