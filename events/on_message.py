@@ -61,6 +61,7 @@ class OnMessage(commands.Cog):
         xp = current_xp
         xp_required = 5*(current_level**2)
         rewards = config['features']['leveling'].get('rewards')
+        stackable = config['features']['leveling'].get('rewards_stackable')
         channel_id = int(config['features']['leveling'].get('announcement_channel_id'))
         channel = message.guild.get_channel(channel_id)
 
@@ -77,7 +78,12 @@ class OnMessage(commands.Cog):
                 if role_id:
                     role = message.guild.get_role(int(role_id))
                     if role:
-                        await message.author.add_roles(role)
+                        if stackable:
+                            await message.author.add_roles(role)
+                        else:
+                            previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
+                            roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
+                            await message.author.remove_roles(*roles_to_remove)
                         embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
                         embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** anf have earned the role <span class=notranslate>{role.mention}</span> !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
                 else:
@@ -132,11 +138,11 @@ class OnMessage(commands.Cog):
 
             try:
                 clean_content = message.content.strip().replace("`", "")
-                result = asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
+                result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
                 count = int(result)
             except asyncio.TimeoutError:
                 timeout_message = await translate(text=f"🥀 This calculation is too complex\n-# Next number is {expected_count}", dest_lng=language)
-                await message.channel.send(value_error_message)
+                await message.channel.send(timeout_message)
                 return
             except ValueError:
                 value_error_message = await translate(text=f"<span class=notranslate>{message.author.mention}</span>, please send a valid number\n-# Next number is {expected_count}", dest_lng=language)
