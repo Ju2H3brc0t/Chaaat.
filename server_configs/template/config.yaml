@@ -4,8 +4,11 @@ features:
     enabled: false # A feature to celebrate the birthday of a member 
     gift:
       enabled: false
+      role: []
+      temporary_role: []
       xp: 0
   bump_reminder:
+    channel: 0
     enabled: false # A reminder for Disboard /bump command
   counting:
     channel_id: 0
@@ -29,7 +32,7 @@ features:
   message_autodelete:
     channels_id: [] # Autodeletion of messages in the list
     enabled: false 
-    wait_m: 0 # For how long do the bot have to wait before deleting the message
+    wait: 0 # For how long do the bot have to wait before deleting the message
   welcome:
     channel_id: 0
     enabled: false

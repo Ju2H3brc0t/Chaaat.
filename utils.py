@@ -9,53 +9,61 @@ translator = Translator()
 DB_PATH = "database.db"
 
 DEFAULT_CONFIG = {
-    'features': {
-        'counting': {
-            'channel_id': 0,
-            'enabled': False,
-            'reset_if_wrong_user': False
-        },
-        'language': 'en',
-        'member_role': {
-            'enabled': False,
-            'role_id': [0]
-        },
-        'leveling': {
-            'enabled': False,
-            'exclude_channels': [0],
-            'boost_channels': [0],
-            'default_level': 0,
-            'rewards': {'0': 0, '1': 1},
-            'rewards_stackable': False,
-            'announcement': {
-                'enabled': False,
-                'channel_id': 0
+    "features": {
+        "birthday": {
+            "announcement_channel_id": 0,
+            "enabled": False,
+            "gift": {
+                "enabled": False,
+                "role": [],
+                "temporary_role": [],
+                "xp": 0
             }
         },
-        'welcome': {
-            'enabled': False,
-            'channel_id': 0
+        "bump_reminder": {
+            "channel": 0,
+            "enabled": False
         },
-        'goodbye': {
-            'enabled': False,
-            'channel_id': 0
+        "counting": {
+            "channel_id": 0,
+            "checkpoints": False,
+            "enabled": False
         },
-        'birthday': {
-            'enabled': False,
-            'announcement_channel_id': 0,
-            'gift': {
-                'enabled': False,
-                'role': [0],
-                'temporary_role': [0],
-                'xp': 0
-            }
+        "goodbye": {
+            "channel_id": 0,
+            "enabled": False
+        },
+        "language": "en",
+        "leveling": {
+            "announcement_channel_id": 0,
+            "boost_channels": [],
+            "enabled": True,
+            "exclude_channels": [],
+            "rewards": {
+                "0": 0
+            },
+            "rewards_stackable": False
+        },
+        "member_role": {
+            "enabled": False,
+            "role_id": []
+        },
+        "message_autodelete": {
+            "channels_id": [],
+            "enabled": False,
+            "wait": 0
+        },
+        "welcome": {
+            "channel_id": 0,
+            "enabled": False
         }
     }
 }
 
 DEFAULT_JSON = {
-    'counting': 0,
-    'last_user_id': 0
+    "counting": 0,
+    "last_user_id": 0,
+    "next_bump": "Anytime"
 }
 
 async def init_db():
@@ -67,6 +75,7 @@ async def init_db():
                 xp INTEGER DEFAULT 0,
                 level INTEGER DEFAULT 0,
                 birthday TEXT,
+                previous_temporary_gift INTEGER,
                 PRIMARY KEY (user_id, guild_id)
             )
         ''')

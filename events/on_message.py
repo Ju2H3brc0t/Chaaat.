@@ -4,12 +4,49 @@ from discord.ext import commands
 from simpleeval import SimpleEval
 import asyncio
 import json
-
+import os
 
 class OnMessage(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self._tasks = []
+        self.client.loop.create_task(self.check_active_tasks())
     
+    async def check_active_tasks(self):
+        await self.client.wait_until_ready()
+
+        base_path = 'server_configs'
+        if not os.path.exists(base_path): return
+
+        for guild_id_str in os.listdir(base_path):
+            guild_id = int(guild_id_str)
+            data = await load_data(guild_id=guild_id, auto_create=True)
+            data_path = f'server_configs/{guild_id}/data.json'
+            config = await load_config(guild_id=guild_id, auto_create=True)
+            language = str(config['features'].get('language'))
+
+            end_time = data.get('next_bump', None)
+            enabled = bool(config['features']['bump_reminder'].get('enabled'))
+            channel = int(config['features']['bump_reminder'].get('channel'))
+
+            if enabled and end_time != "Anytime":
+                now = discord.utils.utcnow().timestamp()
+                if end_time > now:
+                    self.start_bump_reminder(guild_id=guild_id, end_time=end_time, channel_id=channel, language=language)
+                else:
+                    embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
+                    embed_description = "Two hours passed since the last bump, you can bump the server again"
+
+                    embed = discord.Embed(title=embed_title,
+                        description=embed_description,
+                        colour=discord.Color.blurple(),
+                        timestamp=discord.utils.utcnow())
+            
+                    await channel.send(embed=embed)
+                    data['next_bump'] = "Anytime"
+                    with open(data_path, 'w') as f:
+                        json.dump(data, f, indent=4)
+
     async def message_autodelete(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
 
@@ -19,7 +56,7 @@ class OnMessage(commands.Cog):
         if autodelete_enabled:
             async def autodelete():
                 if message.channel.id in [int(cid) for cid in config['features']['message_autodelete'].get('channels_id')]:
-                    await asyncio.sleep(60*autodelete_wait_duration)
+                    await asyncio.sleep(autodelete_wait_duration)
                     try:
                         await message.delete()
                     except discord.NotFound:
@@ -30,13 +67,32 @@ class OnMessage(commands.Cog):
     async def bump_reminder(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
         language = str(config['features'].get('language'))
+        data = await load_data(guild_id=message.guild.id, auto_create=True)
+        data_path = f'server_configs/{message.guild.id}/data.json'
 
-        bump_reminder_enabled = bool(config['features']['bump_reminder'].get['enabled'])
+        bump_reminder_enabled = bool(config['features']['bump_reminder'].get('enabled'))
+        channel = int(config['features']['bump_reminder'].get('channel'))
 
         if message.author.id == 302050872383242240 and bump_reminder_enabled:
-            async def reminder():
-                channel = message.guild.get_channel(message.channel.id)
-                await asyncio.sleep(7200)
+            end_time = discord.utils.utcnow().timestamp() + 7200
+
+            data['next_bump'] = end_time
+            with open(data_path, 'w') as f:
+                json.dump(data, f, indent=4)
+            
+            await self.start_bump_reminder(message=message.guild.id, end_time=end_time, channel_id=channel, language=language)
+
+    async def start_bump_reminder(self, guild_id, end_time, channel_id, language):
+        delay = end_time - discord.utils.utcnow().timestamp()
+        await asyncio.sleep(delay)
+
+        guild = self.client.fetch_guild(guild_id)
+        if guild:
+            channel = await guild.fetch_channel(channel_id)
+            if channel:
+                data = await load_data(guild_id=guild_id, auto_create=True)
+                data_path = f'server_configs/{guild_id}/data.json'
+
                 embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
                 embed_description = "Two hours passed since the last bump, you can bump the server again"
 
@@ -44,10 +100,11 @@ class OnMessage(commands.Cog):
                     description=embed_description,
                     colour=discord.Color.blurple(),
                     timestamp=discord.utils.utcnow())
-                
-                await channel.send(embed=embed)
             
-            self.client.loop.create_task(reminder())
+                await channel.send(embed=embed)
+                data['next_bump'] = "Anytime"
+                with open(data_path, 'w') as f:
+                    json.dump(data, f, indent=4)
 
     async def leveling(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
@@ -73,7 +130,7 @@ class OnMessage(commands.Cog):
                 await update_db(column="xp", value=current_xp + 2, user_id=message.author.id, guild_id=message.guild.id)
                 xp = current_xp + 2
             if xp == xp_required:
-                await update_db(column="level", value=current_level + 1)
+                await update_db(column="level", value=current_level + 1, user_id=message.author.id, guild_id=message.guild.id)
                 role_id = rewards.get(current_level)
                 if role_id:
                     role = message.guild.get_role(int(role_id))
@@ -84,9 +141,9 @@ class OnMessage(commands.Cog):
                             previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
                             roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
                             await message.author.remove_roles(*roles_to_remove)
-                        embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
                         embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** anf have earned the role <span class=notranslate>{role.mention}</span> !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
                 else:
+                    embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
                     embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
 
                     embed = discord.Embed(title=embed_title,
