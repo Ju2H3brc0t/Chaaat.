@@ -29,7 +29,7 @@ class Dev(commands.Cog):
 
     async def shutdown(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         response_text = await translate(text="🪫 Shutting down...", dest_lng=language)
         
