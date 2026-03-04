@@ -9,8 +9,11 @@ import os
 class OnMessage(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self._tasks = []
-        self.client.loop.create_task(self.check_active_tasks())
+        self.evaluator = None
+    
+    async def cog_load(self):
+        self.evaluator = SimpleEval
+        print("✅ Evaluator loaded for on_message")
     
     async def check_active_tasks(self):
         await self.client.wait_until_ready()
