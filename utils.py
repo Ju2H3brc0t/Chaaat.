@@ -160,7 +160,7 @@ async def load_data(guild_id: int, auto_create: bool = True):
 async def translate(text: str, dest_lng: str):
     if dest_lng != "en":
         result = translator.translate(text, src='en', dest=dest_lng)
+        return result.text
     else:
         result = text
-    
-    return result.text
+        return result
