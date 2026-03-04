@@ -84,11 +84,14 @@ class BirthdayVerification(commands.Cog):
                             await update_db(column="xp", value=current_xp+xp, user_id=user_id, guild_id=guild_id)
                         
                         if roles:
+                            roles_to_add = [guild.get_role(r) for r in roles if guild.get_role(r)]
+
                             await user.add_roles(*roles)
 
                         if temporary_role:
-                            await user.add_roles(*temporary_role)
+                            roles_to_add = [guild.get_role(r) for r in temporary_role if guild.get_role(r)]
 
+                            await user.add_roles(*roles_to_add)
                             await update_db(column="previous_temporary_gift", value=str(temporary_role), user_id=user_id, guild_id=guild_id)
 
     @tasks.loop(time=datetime.time(hour=8, minute=0))
