@@ -40,58 +40,71 @@ class Level(commands.Cog):
 
     @level_group.command(name="rank", description="Get your level, your point and your position in the rankings")
     async def rank(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        current_lvl = await get_user_from_db(data_to_get="level", user_id=interaction.user_id, guild_id=interaction.guild_id)
-        current_xp = await get_user_from_db(data_to_get="xp", user_id=interaction.user_id, guild_id=interaction.guild_id)
-        xp_required = 5*(current_lvl**2)
-        xp_to_next = xp_required - current_xp
-        rank = await self.get_user_rank(interaction)
+        level_enabled = bool(config['features']['birthday'].get('enabled'))
 
-        embed_title = await translate(text="📊 Level and Experience", dest_lng=language)
-        embed_desciption = await translate(text=f"You are currently at level **{current_lvl}** with **{current_xp}** points.\nTo advance to the next level you need **{xp_to_next}** more experience points.\n\nYour currently number **{rank}** at the the rankings.", dest_lng=language)
+        if level_enabled:
+            await interaction.response.defer(ephemeral=True)
 
-        embed = discord.Embed(title=embed_title,
-                              description=embed_desciption,
-                              color=discord.Color.gold())
+            current_lvl = await get_user_from_db(data_to_get="level", user_id=interaction.user_id, guild_id=interaction.guild_id)
+            current_xp = await get_user_from_db(data_to_get="xp", user_id=interaction.user_id, guild_id=interaction.guild_id)
+            xp_required = 5*(current_lvl**2)
+            xp_to_next = xp_required - current_xp
+            rank = await self.get_user_rank(interaction)
+
+            embed_title = await translate(text="📊 Level and Experience", dest_lng=language)
+            embed_desciption = await translate(text=f"You are currently at level **{current_lvl}** with **{current_xp}** points.\nTo advance to the next level you need **{xp_to_next}** more experience points.\n\nYour currently number **{rank}** at the the rankings.", dest_lng=language)
+
+            embed = discord.Embed(title=embed_title,
+                description=embed_desciption,
+                color=discord.Color.gold())
         
-        embed.set_footer(text="Chaaat", icon_url=interaction.user.display_avatar.url)
+            embed.set_footer(text="Chaaat", icon_url=interaction.user.display_avatar.url)
 
-        await interaction.followup.send(embed=embed)
+            await interaction.followup.send(embed=embed)
+        else:
+            not_activated_message = await translate(text="🧩 This feature is disabled on this server.", dest_lng=language)
+            await interaction.response.send_message(not_activated_message)
     
     @level_group.command(name="leaderboard", description="Get the experience leaderboard of the server")
     async def leaderboard(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        top_players = await self.get_leaderboard(interaction)
+        level_enabled = bool(config['features']['birthday'].get('enabled'))
 
-        if not top_players:
-            no_data_message = await translate(text="⁉️ No data available for now, please try again later...", dest_lng=language)
-            await interaction.followup.send(no_data_message, ephemeral=True)
-        
-        description = ""
-        for index, (user_id, xp, level) in enumerate(top_players, start=1):
-            intro_description = f"**{index}.** <@{user_id}> -"
-            outro_description = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
-            description += f"{intro_description}{outro_description}\n"
-        
-        embed_title = await translate(text="🏆 Leaderboard for the server ", dest_lng=language)
+        if level_enabled:
+            await interaction.response.defer(ephemeral=True)
 
-        embed = discord.Embed(
-            title=f"{embed_title}{interaction.guild.name}",
-            description=description,
-            color=discord.Color.gold())
-        
-        footer_text = await translate(text="Keep discussing to climb the rankings !", dest_lng=language)
-        embed.set_footer(text=footer_text)
+            top_players = await self.get_leaderboard(interaction)
 
-        await interaction.followup.send(embed=embed)
+            if not top_players:
+                no_data_message = await translate(text="⁉️ No data available for now, please try again later...", dest_lng=language)
+                await interaction.followup.send(no_data_message, ephemeral=True)
+        
+            description = ""
+            for index, (user_id, xp, level) in enumerate(top_players, start=1):
+                intro_description = f"**{index}.** <@{user_id}> -"
+                outro_description = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
+                description += f"{intro_description}{outro_description}\n"
+        
+            embed_title = await translate(text="🏆 Leaderboard for the server ", dest_lng=language)
+
+            embed = discord.Embed(
+                title=f"{embed_title}{interaction.guild.name}",
+                description=description,
+                color=discord.Color.gold())
+        
+            footer_text = await translate(text="Keep discussing to climb the rankings !", dest_lng=language)
+            embed.set_footer(text=footer_text)
+
+            await interaction.followup.send(embed=embed)
+        
+        else:
+            not_activated_message = await translate(text="🧩 This feature is disabled on this server.", dest_lng=language)
+            await interaction.response.send_message(not_activated_message)
 
 async def setup(client):
     await client.add_cog(Level(client))

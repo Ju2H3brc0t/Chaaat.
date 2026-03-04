@@ -23,11 +23,11 @@ class Config(commands.Cog):
     config_group = app_commands.Group(name="config", description="Commands to modify the configs of the current server")
 
     @config_group.command(name="show", description="Show the configs of the current server")
-    @app_commands.check.has_permissions(administration=True)
+    @app_commands.check.has_permissions(manage_guild=True)
     async def show(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         features = config.get("features", {})
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         embed_title = await translate(text="⚙️ Server configuration", dest_lng=language)
         embed_description = await translate(text="⚠️ This command directly returns the content of the yaml file associated with this server, you can edit it via the `/set_config` command at your own risk.\n\nHere is the bot configuration for this server :", dest_lng=language)
@@ -65,7 +65,7 @@ class Config(commands.Cog):
             await interaction.response.send_message("⚠️ Config file not found for this server.", ephemeral=True)
             return
 
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         keys = clean_path.split(':')
         if len(keys) < 2:
@@ -98,7 +98,7 @@ class Config(commands.Cog):
     @app_commands.check.has_permissions(administrator=True)
     async def reset(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         config_file_path = f'server_configs/{interaction.guild_id}/config.yaml'
 
@@ -112,7 +112,7 @@ class Config(commands.Cog):
     @app_commands.check.has_permissions(administrator=True)
     async def help(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         help_text = (
             "## ⚙️ Configuration Help\n\n"

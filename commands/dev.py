@@ -39,7 +39,7 @@ class Dev(commands.Cog):
     
     async def update(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         try:
             subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
@@ -58,7 +58,7 @@ class Dev(commands.Cog):
     
     async def reload(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         folders = ['commands', 'events']
         extensions = []
@@ -107,7 +107,7 @@ class Dev(commands.Cog):
 
     async def command(self, interaction: discord.Interaction, action: str):
         config = await load_config(guild_id=interaction, auto_create=True)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config['features'].get('language'))
 
         refused_text = await translate(text="⛔️ You do not have permission to use this command.", dest_lng=language)
         

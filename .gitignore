@@ -1,4 +1,8 @@
 .env
+
 */__pycache__/
-server_configs/
+
+server_configs/*
+!server_configs/template
+
 database.db

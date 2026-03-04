@@ -41,9 +41,9 @@ class OnMessage(commands.Cog):
                 embed_description = "Two hours passed since the last bump, you can bump the server again"
 
                 embed = discord.Embed(title=embed_title,
-                                      description=embed_description,
-                                      colour=discord.Color.blurple(),
-                                      timestamp=discord.utils.utcnow())
+                    description=embed_description,
+                    colour=discord.Color.blurple(),
+                    timestamp=discord.utils.utcnow())
                 
                 await channel.send(embed=embed)
             
@@ -84,9 +84,9 @@ class OnMessage(commands.Cog):
                     embed_description = await translate(text=f"Congratulation <span class=notranslate>{message.author.mention}</span>, you reached level **{current_level + 1}** !\nTo advance to the next level and , you need **{5*((current_level+1)**2)}** more experience points")
 
                     embed = discord.Embed(title=embed_title,
-                                          description=embed_description,
-                                          colour=discord.Color.gold(),
-                                          timestamp=discord.utils.utcnow())
+                        description=embed_description,
+                        colour=discord.Color.gold(),
+                        timestamp=discord.utils.utcnow())
 
                     embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
 

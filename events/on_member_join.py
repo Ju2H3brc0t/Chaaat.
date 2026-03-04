@@ -34,9 +34,10 @@ class OnMemberJoin(commands.Cog):
                 title=embed_title,
                 description=embed_description,
                 color=discord.Color.teal(),
-                timestamp=discord.utils.utcnow()
-            )
+                timestamp=discord.utils.utcnow())
+            
             embed.set_thumbnail(url=member.display_avatar.url)
+            
             await channel.send(embed=embed)
 
 async def setup(client):
