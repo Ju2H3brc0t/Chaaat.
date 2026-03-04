@@ -20,11 +20,11 @@ class OnMemberRemove(commands.Cog):
             channel = self.client.fetch_channel(channel_id)
 
             embed_title = await translate(text="Goodbye !", dest_lng=language)
-            embed_description = await translate(text=f"<span class=notranslate>{member.mention}</span> has left the server")
+            embed_description = await translate(text=f"has left the server")
 
             embed = discord.Embed(
                 title=embed_title,
-                description=embed_description,
+                description=f'{member.mention} {embed_description}',
                 color=discord.Color.dark_red(),
                 timestamp=discord.utils.utcnow())
             

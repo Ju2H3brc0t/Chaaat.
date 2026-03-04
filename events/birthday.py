@@ -59,11 +59,12 @@ class BirthdayVerification(commands.Cog):
                     channel = guild.get_channel(channel_id)
                     if channel:
                         embed_title = await translate(text=f"Happy Birthday !", dest_lng=language)
-                        embed_description = await translate(text=f"🎉🎂 Today we wish an happy birthday to <span class=notranslate><@{user_id}></span>", dest_lng=language)
+                        embed_description = await translate(text=f"🎉🎂 Today we wish an happy birthday to", dest_lng=language)
+                        member = await guild.fetch_member(user_id)
 
                         embed = discord.Embed(
                             title=embed_title,
-                            description=embed_description,
+                            description=f'{embed_description} {member.mention}',
                             color=discord.Color.pink(),
                             timestamp=discord.utils.utcnow())
                         

@@ -86,9 +86,11 @@ class Level(commands.Cog):
         
             description = ""
             for index, (user_id, xp, level) in enumerate(top_players, start=1):
-                intro_description = f"**{index}.** <@{user_id}> -"
-                outro_description = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
-                description += f"{intro_description}{outro_description}\n"
+                guild = interaction.guild.id
+                member = await guild.fetch_member(user_id)
+                description_first_part = f"**{index}.** {member.mention} -"
+                description_second_part = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
+                description += f"{description_first_part}{description_second_part}\n"
         
             embed_title = await translate(text="🏆 Leaderboard for the server ", dest_lng=language)
 

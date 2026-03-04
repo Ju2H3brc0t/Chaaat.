@@ -28,11 +28,12 @@ class OnMemberJoin(commands.Cog):
             channel = self.client.get_channel(channel_id)
 
             embed_title = await translate(text="Welcome !", dest_lng=language)
-            embed_description = await translate(f"Hello <span class=notranslate><@{member.id}></span>, welcome to <span class=notranslate>{member.guild.name}</span> !\nThe server now has {member.guild.member_count} membres.")
+            embed_description_first_part = await translate(f"Hello")
+            embed_description_second_part = await translate(f", welcome to <span class=notranslate>{member.guild.name}</span> !\nThe server now have {member.guild.member_count} members")
 
             embed = discord.Embed(
                 title=embed_title,
-                description=embed_description,
+                description=f'{embed_description_first_part} {member.mention}{embed_description_second_part}',
                 color=discord.Color.teal(),
                 timestamp=discord.utils.utcnow())
             
