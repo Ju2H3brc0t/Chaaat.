@@ -20,7 +20,7 @@ class Dev(commands.Cog):
 
     @app_commands.command(name="dev", description="Useful commands for the developpers of the bot")
     @app_commands.describe(action="Which action you want to perform")
-    @app_commands.check.has_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     @app_commands.choices(action=[
         app_commands.Choice(name="Shutdown", value="stop"),
         app_commands.Choice(name="Update (from Github)", value="update"),

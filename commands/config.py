@@ -23,7 +23,7 @@ class Config(commands.Cog):
     config_group = app_commands.Group(name="config", description="Commands to modify the configs of the current server")
 
     @config_group.command(name="show", description="Show the configs of the current server")
-    @app_commands.check.has_permissions(manage_guild=True)
+    @app_commands.checks.has_permissions(manage_guild=True)
     async def show(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         features = config.get("features", {})
@@ -56,7 +56,7 @@ class Config(commands.Cog):
 
     @config_group.command(name="edit", description="Edit the configs of the current server")
     @app_commands.describe(path="The path to the key you want to modify")
-    @app_commands.check.has_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def edit(self, interaction: discord.Interaction, path: str):
         clean_path = path.replace("\\", "")
 
