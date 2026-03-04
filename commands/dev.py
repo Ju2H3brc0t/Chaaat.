@@ -18,15 +18,6 @@ class Dev(commands.Cog):
             devs_ids = [int(uid.strip()) for uid in env_devs.split(',')]
         return devs_ids
 
-    @app_commands.command(name="dev", description="Useful commands for the developpers of the bot")
-    @app_commands.describe(action="Which action you want to perform")
-    @app_commands.checks.has_permissions(administrator=True)
-    @app_commands.choices(action=[
-        app_commands.Choice(name="Shutdown", value="stop"),
-        app_commands.Choice(name="Update (from Github)", value="update"),
-        app_commands.Choice(name="Reload", value="reload")
-    ])
-
     async def shutdown(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
@@ -105,12 +96,20 @@ class Dev(commands.Cog):
         response_message = "\n".join(response)
         await interaction.followup.send(f"```ml\n{response_message}\n```")
 
+    @app_commands.command(name="dev", description="Useful commands for the developpers of the bot")
+    @app_commands.describe(action="Which action you want to perform")
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.choices(action=[
+        app_commands.Choice(name="Shutdown", value="stop"),
+        app_commands.Choice(name="Update (from Github)", value="update"),
+        app_commands.Choice(name="Reload", value="reload")
+    ])
     async def command(self, interaction: discord.Interaction, action: str):
-        config = await load_config(guild_id=interaction, auto_create=True)
+        config = await load_config(guild_id=interaction.guild.id, auto_create=True)
         language = str(config['features'].get('language'))
 
         refused_text = await translate(text="⛔️ You do not have permission to use this command.", dest_lng=language)
-        
+
         if interaction.user.id not in await self.get_devs_ids():
             await interaction.response.send_message(refused_text, ephemeral=True)
             return

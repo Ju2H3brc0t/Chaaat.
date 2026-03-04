@@ -95,7 +95,7 @@ class Config(commands.Cog):
         await interaction.response.send_message(success_message)
 
     @config_group.command(name="reset", description="Reset default configs for the current server")
-    @app_commands.check.has_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def reset(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
@@ -109,7 +109,7 @@ class Config(commands.Cog):
         await interaction.response.send_message(confirm_message)
 
     @config_group.command(name="help", description="get some help with the configs editor")
-    @app_commands.check.has_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def help(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
