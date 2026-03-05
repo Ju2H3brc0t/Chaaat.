@@ -93,10 +93,10 @@ class Level(commands.Cog):
                 description_second_part = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
                 description += f"{description_first_part}{description_second_part}\n"
         
-            embed_title = await translate(text="🏆 Leaderboard for the server ", dest_lng=language)
+            embed_title = await translate(text="🏆 Leaderboard for the server", dest_lng=language)
 
             embed = discord.Embed(
-                title=f"{embed_title}{interaction.guild.name}",
+                title=f"{embed_title} {interaction.guild.name}",
                 description=description,
                 color=discord.Color.gold())
         
