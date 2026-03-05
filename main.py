@@ -50,7 +50,7 @@ async def setup_hook():
             traceback.print_exc()
 
     try:
-        await client.tree.clear_commands(guild=None)
+        client.tree.clear_commands(guild=None)
         synced = await client.tree.sync()
         print(f'🌐 Synced {len(synced)} command(s)')
     except Exception as e:

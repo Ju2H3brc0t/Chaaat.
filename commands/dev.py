@@ -87,7 +87,7 @@ class Dev(commands.Cog):
                 response.append(error_loaded_extension_message)
 
         try:
-            await client.tree.clear_commands(guild=None)
+            client.tree.clear_commands(guild=None)
             synced = await client.tree.sync()
             
             synced_message = await translate(text=f"🌐 Synced {len(synced)} command(s)", dest_lng=language)
