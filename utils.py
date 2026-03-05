@@ -73,7 +73,7 @@ async def init_db():
                 user_id INTEGER,
                 guild_id INTEGER,
                 xp INTEGER DEFAULT 0,
-                level INTEGER DEFAULT 0,
+                level INTEGER DEFAULT 1,
                 birthday TEXT,
                 previous_temporary_gift INTEGER,
                 PRIMARY KEY (user_id, guild_id)
@@ -159,8 +159,9 @@ async def load_data(guild_id: int, auto_create: bool = True):
 
 async def translate(text: str, dest_lng: str):
     if dest_lng != "en":
-        result = translator.translate(text, src='en', dest=dest_lng)
-        return result.text
+        async with Translator() as translator:
+            result = await translator.translate(text, src='en', dest=dest_lng)
+            return result.text
     else:
         result = text
         return result
