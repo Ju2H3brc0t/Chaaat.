@@ -1,10 +1,8 @@
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 import aiosqlite
 import yaml
 import json
 import os
-
-translator = Translator()
 
 DB_PATH = "database.db"
 
@@ -159,9 +157,7 @@ async def load_data(guild_id: int, auto_create: bool = True):
 
 async def translate(text: str, dest_lng: str):
     if dest_lng != "en":
-        async with Translator() as translator:
-            result = await translator.translate(text, src='en', dest=dest_lng)
-            return result.text
+        result = GoogleTranslator(source='en', target=dest_lng).translate(text=text)
+        return result.text
     else:
-        result = text
-        return result
+        return text
