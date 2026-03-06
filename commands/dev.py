@@ -59,7 +59,7 @@ class Dev(commands.Cog):
 
         for folder in folders:
             for filename in os.listdir(folder):
-                if filename.endswith('.py'):
+                if filename.endswith('.py') and not filename.startswith('__'):
                     extensions.append(f'{folder}.{filename[:-3]}')
 
         for extension in extensions:
