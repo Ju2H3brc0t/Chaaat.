@@ -132,9 +132,9 @@ class OnMessage(commands.Cog):
             elif not message.channel.id in exclude_channels and message.channel.id in boost_channels: 
                 await update_db(column="xp", value=current_xp + 2, user_id=message.author.id, guild_id=message.guild.id)
                 xp = current_xp + 2
-            if xp == xp_required:
+            if xp >= xp_required:
                 await update_db(column="level", value=current_level + 1, user_id=message.author.id, guild_id=message.guild.id)
-                role_id = rewards.get(current_level)
+                role_id = rewards.get(str(current_level)) or rewards.get(current_level)
                 if role_id:
                     role = message.guild.get_role(int(role_id))
                     if role:
