@@ -97,7 +97,7 @@ class OnMessage(commands.Cog):
                 data_path = f'server_configs/{guild_id}/data.json'
 
                 embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
-                embed_description = "Two hours passed since the last bump, you can bump the server again"
+                embed_description = await translate(text="Two hours passed since the last bump, you can bump the server again", dest_lng=language)
 
                 embed = discord.Embed(title=embed_title,
                     description=embed_description,
