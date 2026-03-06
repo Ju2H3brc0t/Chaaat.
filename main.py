@@ -27,11 +27,6 @@ else:
     print("🔑 Bot token found.")
     token_str = str(token)
 
-for folder in folders:
-    for filename in os.listdir(folder):
-        if filename.endswith('.py') and not filename.startswith('__'):
-            initial_extensions.append(f'{folder}.{filename[:-3]}')
-
 @client.event
 async def setup_hook():
     try:
@@ -40,6 +35,11 @@ async def setup_hook():
     except Exception as e:
         print(f'⚠️ Failed to load database: {e}')
         traceback.print_exc()
+
+    for folder in folders:
+        for filename in os.listdir(folder):
+            if filename.endswith('.py') and not filename.startswith('__'):
+                initial_extensions.append(f'{folder}.{filename[:-3]}')
 
     for extension in initial_extensions:
         try:
