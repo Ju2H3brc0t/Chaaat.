@@ -155,7 +155,7 @@ async def load_data(guild_id: int, auto_create: bool = True):
     with open(file_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-async def load_locale(language: str):
+def load_locale(language: str):
     path = f'locales/{language}.json'
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
