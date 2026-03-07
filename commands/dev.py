@@ -89,7 +89,7 @@ class Dev(commands.Cog):
         try:
             synced = await client.tree.sync()
             
-            synced_message = await translate(text="🌐 Synced {synced} command(s)", dest_lng=language, synced={len(synced)})
+            synced_message = await translate(text="🌐 Synced {synced} command(s)", dest_lng=language, synced=len(synced))
 
             response.append(synced_message)
         except Exception as e:
