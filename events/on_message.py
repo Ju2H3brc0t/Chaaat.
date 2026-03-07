@@ -38,7 +38,7 @@ class OnMessage(commands.Cog):
                     self.client.loop.create_task(self.start_bump_reminder(guild_id=guild_id, end_time=end_time, channel_id=channel_id, language=language))
                 else:
                     embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
-                    embed_description = "Two hours passed since the last bump, you can bump the server again"
+                    embed_description = await translate("Two hours passed since the last bump, you can bump the server again", dest_lng=language)
 
                     embed = discord.Embed(title=embed_title,
                         description=embed_description,
@@ -145,9 +145,9 @@ class OnMessage(commands.Cog):
                             roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
                             await message.author.remove_roles(*roles_to_remove)
                         embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
-                        embed_description_first_part = await translate(text=f"Congratulation", dest_lng=language)
-                        embed_description_second_part = await translate(text=f", you reached level **{current_level + 1}** and have earned the role", dest_lng=language)
-                        embed_description_third_part = await translate(text=f"To advance to the next level you need **{5*((current_level+1)**2)}** more experience points", dest_lng=language)
+                        embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
+                        embed_description_second_part = await translate(text=", you reached level **{level}** and have earned the role", dest_lng=language, level=current_level+1)
+                        embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language, need=5*((current_level+1)**2))
                         embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} {role.mention} !\n{embed_description_third_part}'
 
                         embed = discord.Embed(title=embed_title,
@@ -162,9 +162,9 @@ class OnMessage(commands.Cog):
                         return
                 else:
                     embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
-                    embed_description_first_part = await translate(text=f"Congratulation", dest_lng=language)
-                    embed_description_second_part = await translate(text=f", you reached level **{current_level + 1}**", dest_lng=language)
-                    embed_description_third_part = await translate(text=f"To advance to the next level you need **{5*((current_level+1)**2)}** more experience points", dest_lng=language)
+                    embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
+                    embed_description_second_part = await translate(text=", you reached level **{level}**", dest_lng=language, level=current_level+1)
+                    embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language, need=5*((current_level+1)**2))
                     embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} !\n{embed_description_third_part}'
 
 
@@ -223,12 +223,10 @@ class OnMessage(commands.Cog):
                 result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
                 count = int(result)
             except asyncio.TimeoutError:
-                timeout_message = await translate(text=f"🥀 This calculation is too complex\n-# Next number is {expected_count}", dest_lng=language)
+                timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=expected_count)
                 await message.channel.send(timeout_message)
                 return
             except ValueError:
-                value_error_message = await translate(text=f"<span class=notranslate>{message.author.mention}</span>, please send a valid number\n-# Next number is {expected_count}", dest_lng=language)
-                await message.channel.send(value_error_message)
                 return
             
             if current_count % 100 == 0:
@@ -255,21 +253,21 @@ class OnMessage(commands.Cog):
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
-                        wrong_but_is_checkpoint = await translate(text=f"made a mistake, but the preceding number is a checkpoint\n-# Next number is {expected_count}", dest_lng=language)
+                        wrong_but_is_checkpoint = await translate(text="made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=expected_count)
                         await message.channel.send(f"{message.author.mention} {wrong_but_is_checkpoint}")
                         data['counting'] = previous_checkpoint
                         data['last_user_id'] = None
                         with open(data_path, 'w') as f:
                             json.dump(data, f, indent=4)
                         return
-                    wrong_but_checkpoint = await translate(text=f"made a mistake, the counter has returned to the previous checkpoint\n-# Next number is {previous_checkpoint + 1}", dest_lng=language)
+                    wrong_but_checkpoint = await translate(text="made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.", dest_lng=language, previous_checkpoint=previous_checkpoint+1)
                     await message.channel.send(f"{message.author.mention} {wrong_but_checkpoint}")
                     data['counting'] = previous_checkpoint
                     data['last_user_id'] = previous_checkpoint
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
                 else:
-                    wrong_message = await translate(text=f"made a mistake, the counter has been reset\n-# Next number is 1", dest_lng=language)
+                    wrong_message = await translate(text=f"made a mistake, the counter has been reset.\n-# Next number is 1.", dest_lng=language)
                     await message.channel.send(f"{message.author.mention} {wrong_message}")
                     data['counting'] = 0
                     data['last_user_id'] = None

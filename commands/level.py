@@ -55,7 +55,7 @@ class Level(commands.Cog):
             rank = await self.get_user_rank(interaction)
 
             embed_title = await translate(text="📊 Level and Experience", dest_lng=language)
-            embed_desciption = await translate(text=f"You are currently at level **{current_lvl}** with **{current_xp}** points.\nTo advance to the next level you need **{xp_to_next}** more experience points.\n\nYour currently number **{rank}** at the the rankings.", dest_lng=language)
+            embed_desciption = await translate(text="You are currently at level **{current_lvl}** with **{current_xp}** points.\nTo advance to the next level you need **{xp_to_next}** more experience points.\n\nYour currently number **{rank}** at the the rankings.", dest_lng=language, current_lvl=current_lvl, current_xp=current_xp, xp_to_next=xp_to_next, rank=rank)
 
             embed = discord.Embed(title=embed_title,
                 description=embed_desciption,
@@ -90,8 +90,8 @@ class Level(commands.Cog):
                 guild = interaction.guild
                 member = await guild.fetch_member(user_id)
                 description_first_part = f"**{index}.** {member.mention} -"
-                description_second_part = await translate(text=f" **Level {level} ({xp} XP)**", dest_lng=language)
-                description += f"{description_first_part}{description_second_part}\n"
+                description_second_part = await translate(text="**Level {level} ({xp} XP)**", dest_lng=language, level=level, xp=xp)
+                description += f"{description_first_part} {description_second_part}\n"
         
             embed_title = await translate(text="🏆 Leaderboard for the server", dest_lng=language)
 

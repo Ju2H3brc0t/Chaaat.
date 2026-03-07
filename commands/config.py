@@ -29,8 +29,8 @@ class Config(commands.Cog):
         features = config.get("features", {})
         language = str(config['features'].get('language'))
 
-        embed_title = await translate(text="⚙️ Server configuration", dest_lng=language)
-        embed_description = await translate(text="⚠️ This command directly returns the content of the yaml file associated with this server, you can edit it via the `/set_config` command at your own risk.\n\nHere is the bot configuration for this server :", dest_lng=language)
+        embed_title = await translate(text="⚙️ Server Configuration", dest_lng=language)
+        embed_description = await translate(text="⚠️ This command directly returns the content of the yaml file associated with this server, you can edit it via the `/config edit` command at your own risk.\n\nHere is the bot configuration for this server :", dest_lng=language)
 
         embed = discord.Embed(
             title=embed_title,
@@ -132,8 +132,8 @@ class Config(commands.Cog):
             "* **YAML format** : Respect types (True/False for booleans, numbers for ID's)\n"
             "* **Users/Channels ID** : You can get the ID of something by enabling developper mode in Discord settings then doing right click -> Copy ID\n\n"
             "### Useful ressources :\n"
-            "* [Learn YAML in 5 minutes](https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started) *"
-            "* [online YAML verifyer](https://yamlchecker.com/) *"
+            "* - [Learn YAML in 5 minutes](https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started) *"
+            "* - [online YAML verifyer](https://yamlchecker.com/) *"
         )
 
         translated_help_text = await translate(text=help_text, dest_lng=language)
