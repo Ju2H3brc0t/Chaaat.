@@ -35,15 +35,15 @@ class Dev(commands.Cog):
         try:
             subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
             process = subprocess.run(["git", "pull", "origin", "main"], check=True, capture_output=True, text=True)
-            log_git = process.stdout if process.stdout else "Already up to date."
+            log_git = process.stdout if process.stdout else await translate(text="Already up to date.", dest_lng=language)
 
-            intro_subprocess_text = await translate(text=f"✅ Update successful:", dest_lng=language)
+            intro_subprocess_text = await translate(text="✅ Update successful:", dest_lng=language)
             subprocess_text = f"{intro_subprocess_text}\n```{log_git}```"
 
             await interaction.followup.send(subprocess_text, ephemeral=True)
         except subprocess.CalledProcessError as e:
-            intro_error_message = await translate(text="❌ Git Error: ", dest_lng=language)
-            error_msg = f"{intro_error_message}{e.stderr}"
+            intro_error_message = await translate(text="❌ Git Error:", dest_lng=language)
+            error_msg = f"{intro_error_message} {e.stderr}"
 
             await interaction.followup.send(error_msg, ephemeral=True)
     
@@ -80,8 +80,8 @@ class Dev(commands.Cog):
                     response.append(loaded_extension_message)
 
             except Exception as e:
-                error_loaded_extension_message_first_part = await translate(text=f"⚠️ Failed to load extension", dest_lng=language)
-                error_loaded_extension_message_second_part = f'{extension}: {e}'
+                error_loaded_extension_message_first_part = await translate(text=f"⚠️ Failed to load extension:", dest_lng=language)
+                error_loaded_extension_message_second_part = f'{extension} {e}'
                 error_loaded_extension_message = f'{error_loaded_extension_message_first_part} {error_loaded_extension_message_second_part}'
 
                 response.append(error_loaded_extension_message)
@@ -89,7 +89,7 @@ class Dev(commands.Cog):
         try:
             synced = await client.tree.sync()
             
-            synced_message = await translate(text=f"🌐 Synced {len(synced)} command(s)", dest_lng=language)
+            synced_message = await translate(text="🌐 Synced {synced} command(s)", dest_lng=language, synced={len(synced)})
 
             response.append(synced_message)
         except Exception as e:

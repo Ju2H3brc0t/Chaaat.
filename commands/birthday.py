@@ -28,7 +28,7 @@ class Birthday(commands.Cog):
         
             await update_db(column="birthday", value=bday, user_id=interaction.user.id, guild_id=interaction.guild_id)
         
-            success_message = await translate(text=f"✅ Your birthday has been registered as {date}.", dest_lng=language)
+            success_message = await translate(text="✅ Your birthday has been registered as {date}.", dest_lng=language, date=date)
             await interaction.followup.send(success_message, ephemeral=True)
         else:
             not_activated_message = await translate(text="🧩 This feature is disabled on this server.", dest_lng=language)

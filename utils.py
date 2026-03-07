@@ -155,9 +155,21 @@ async def load_data(guild_id: int, auto_create: bool = True):
     with open(file_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-async def translate(text: str, dest_lng: str):
-    if dest_lng != "en":
-        result = GoogleTranslator(source='en', target=dest_lng).translate(text=text)
-        return result
-    else:
-        return text
+async def load_locale(language: str):
+    path = f'locales/{language}.json'
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+async def translate(text: str, dest_lng: str, **kwargs):
+    if dest_lng == "en":
+        return text.format(**kwargs)
+
+    locale = load_locale(language=dest_lng)
+    template = locale.get(text, None)
+
+    if template:
+        return template.format(**kwargs)
+    
+    result = GoogleTranslator(source='en', target=dest_lng).translate(text=text)
+    return result
