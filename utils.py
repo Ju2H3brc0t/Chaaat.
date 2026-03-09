@@ -170,7 +170,7 @@ async def translate(text: str, dest_lng: str, **kwargs):
     template = locale.get(text, None)
 
     if template:
-        return template.format(**kwargs)
+        return template.format(**kwargs) if kwargs else template
     
     result = GoogleTranslator(source='en', target=dest_lng).translate(text=text)
     return result
