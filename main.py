@@ -28,36 +28,35 @@ else:
     token_str = str(token)
 
 @client.event
-async def setup_hook():
-    try:
-        await init_db()
-        print(f'📦 Database charged successfully')
-    except Exception as e:
-        print(f'⚠️ Failed to load database: {e}')
-        traceback.print_exc()
-
-    for folder in folders:
-        for filename in os.listdir(folder):
-            if filename.endswith('.py') and not filename.startswith('__'):
-                initial_extensions.append(f'{folder}.{filename[:-3]}')
-
-    for extension in initial_extensions:
-        try:
-            await client.load_extension(extension)
-            print(f'📂 Loaded extension: {extension}')
-        except Exception as e:
-            print(f'⚠️ Failed to load extension {extension}: {e}.')
-            traceback.print_exc()
-
-    try:
-        synced = await client.tree.sync()
-        print(f'🌐 Synced {len(synced)} command(s)')
-    except Exception as e:
-        print(f'⚠️ Failed to sync commands: {e}')
-        traceback.print_exc()
-
-@client.event
 async def on_ready():
+    if not initial_extensions:
+        try:
+            await init_db()
+            print(f'📦 Database charged successfully')
+        except Exception as e:
+            print(f'⚠️ Failed to load database: {e}')
+            traceback.print_exc()
+        
+        for folder in folders:
+            for filename in os.listdir(folder):
+                if filename.endswith('.py') and not filename.startswith('__'):
+                    initial_extensions.append(f'{folder}.{filename[:-3]}')
+        
+        for extension in initial_extensions:
+            try:
+                await client.load_extension(extension)
+                print(f'📂 Loaded extension: {extension}')
+            except Exception as e:
+                print(f'⚠️ Failed to load extension {extension}: {e}.')
+                traceback.print_exc()
+        
+        try:
+            synced = await client.tree.sync()
+            print(f'🌐 Synced {len(synced)} command(s)')
+        except Exception as e:
+            print(f'⚠️ Failed to sync commands: {e}')
+            traceback.print_exc()
+    
     print(f'✅ Logged in as {client.user}')
 
 @client.tree.error

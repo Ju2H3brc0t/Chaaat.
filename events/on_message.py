@@ -144,10 +144,13 @@ class OnMessage(commands.Cog):
                             previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
                             roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
                             await message.author.remove_roles(*roles_to_remove)
+                            await message.author.add_roles(role)
                         embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
                         embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
-                        embed_description_second_part = await translate(text=", you reached level **{level}** and have earned the role", dest_lng=language, level=current_level+1)
-                        embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language, need=5*((current_level+1)**2))
+                        embed_description_second_part = await translate(text=", you reached level **{level}** and have earned the role", dest_lng=language)
+                        embed_description_second_part = embed_description_second_part.format(level=current_level+1)
+                        embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language)
+                        embed_description_third_part = embed_description_third_part.format(need=5*((current_level+1)**2))
                         embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} {role.mention} !\n{embed_description_third_part}'
 
                         embed = discord.Embed(title=embed_title,
