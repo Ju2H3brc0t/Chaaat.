@@ -160,10 +160,11 @@ def load_locale(language: str):
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
+    return {}
 
 async def translate(text: str, dest_lng: str, **kwargs):
     if dest_lng == "en":
-        return text.format(**kwargs)
+        return text.format(**kwargs) if kwargs else text
 
     locale = load_locale(language=dest_lng)
     template = locale.get(text, None)
