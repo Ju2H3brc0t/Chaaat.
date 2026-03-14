@@ -46,7 +46,7 @@ class Level(commands.Cog):
         level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if level_enabled:
-            await interaction.response.defer(ephemeral=True)
+            await interaction.response.defer()
 
             current_lvl = await get_user_from_db(data_to_get="level", user_id=interaction.user.id, guild_id=interaction.guild_id)
             current_xp = await get_user_from_db(data_to_get="xp", user_id=interaction.user.id, guild_id=interaction.guild_id)
@@ -76,7 +76,7 @@ class Level(commands.Cog):
         level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if level_enabled:
-            await interaction.response.defer(ephemeral=True)
+            await interaction.response.defer()
 
             top_players = await self.get_leaderboard(interaction)
 
