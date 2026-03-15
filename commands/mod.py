@@ -11,7 +11,8 @@ class Mod(commands.Cog):
     mod_group = app_commands.Group(name="mod", description="Commands for moderators")
 
     @mod_group.command(name="timeout", description="Temporarily prevents a member from messaging")
-    @mod_group.checks.has_permissions(moderate_members=True)
+    @app_commands.describe(member="The member you want to timeout", minutes="How long will the timeout be, in minutes", reason="The reason why the member is timed out from the server")
+    @app_commands.checks.has_permissions(moderate_members=True)
     async def timeout(self, interaction: discord.Interaction, member: discord.Member, minutes: int, reason: str):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
@@ -38,7 +39,8 @@ class Mod(commands.Cog):
         await interaction.response.send_message(f"✅ {member.mention} {timeout_message_first_part} {minutes} {timeout_message_second_part} {reason}")
     
     @mod_group.command(name="kick", description="Exclude a user from the server")
-    @mod_group.checks.has_permissions(kick_members=True)
+    @app_commands.describe(member="The member you want to exclude", reason="The reason why the member is excluded from the server")
+    @app_commands.checks.has_permissions(kick_members=True)
     async def kick(self, interaction: discord.Interaction, member: discord.Member, reason: str):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
@@ -58,7 +60,8 @@ class Mod(commands.Cog):
         await interaction.response.send_message(f"👢 {member.mention} {kick_message} {reason}")
     
     @mod_group.command(name="ban", description="Ban a user from the server")
-    @mod_group.checks.has_permissions(ban_members=True)
+    @app_commands.describe(member="The member you want to ban", reason="The reason why the member is banned from the server")
+    @app_commands.checks.has_permissions(ban_members=True)
     async def ban(self, interaction: discord.Interaction, member: discord.Member, reason: str):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
