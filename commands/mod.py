@@ -17,6 +17,19 @@ class Mod(commands.Cog):
         language = str(config['features'].get('language'))
         
         duration = datetime.timedelta(minutes=minutes)
+        unban_time = discord.utils.utcnow() + duration
+        timestamp = discord.utils.format_dt(unban_time, style='R')
+        
+        dm_message_first_part = await translate(text="You have been timed out from", dest_lng=language)
+        dm_message_second_part = await translate(text="Reason :", dest_lng=language)
+        dm_message_third_part = await translate(text="End of the sanction :", dest_lng=language)
+        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**.\n{dm_message_second_part} {reason}\n{dm_message_third_part} {timestamp}'
+
+        try:
+            await member.send(dm_message)
+        except discord.Forbidden:
+            pass
+
         await member.timeout(duration=duration, reason=reason)
         
         timeout_message_first_part = await translate(text="has been timed out for", dest_lng=language)
@@ -30,6 +43,14 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
+        dm_message_first_part = await translate(text="You have been excluded from", dest_lng=language)
+        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**'
+
+        try:
+            await member.send(dm_message)
+        except discord.Forbidden:
+            pass
+
         await member.kick(reason=reason)
         
         kick_message = await translate(text="has been excluded. Reason :", dest_lng=language)
@@ -42,6 +63,14 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
+        dm_message_first_part = await translate(text="You have been defently banned from")
+        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**'
+
+        try:
+            await member.send(dm_message)
+        except discord.Forbidden:
+            pass
+
         await member.ban(reason=reason)
         ban_message = await translate(text="has been defently banned. Reason :", dest_lng=language)
         await interaction.response.send_message(f"🔨 {member.mention} {ban_message} {reason}")
