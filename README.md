@@ -19,7 +19,7 @@ Originally designed for a single specific server, this bot is now capable of bei
 
  - A command (`/config show`) allows you to display the current configuration in a readable embed.
 
-#### Automatic translation
+#### 💬 Automatic translation
 
  - The bot now have locales, used to translate every message he send depending on the configuration of the server
 
