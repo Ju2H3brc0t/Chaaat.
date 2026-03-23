@@ -4,6 +4,7 @@ from discord.ext import commands
 from simpleeval import SimpleEval
 import asyncio
 import json
+import math
 import os
 
 class OnMessage(commands.Cog):
@@ -197,12 +198,11 @@ class OnMessage(commands.Cog):
         counting_enabled = bool(config['features']['counting'].get('enabled'))
         channel_id = int(config['features']['counting'].get('channel_id'))
         checkpoints = bool(config['features']['counting'].get('checkpoints'))
-        current_count = int(data.get('counting', None))
+        current_count = math.floor(data.get('counting', None))
         raw = data.get('last_user_id')
         last_user_id = int(raw) if raw is not None else None
 
         s = SimpleEval()
-        import math
         s.names = {
             "pi": math.pi,
             "π": math.pi,
@@ -226,8 +226,6 @@ class OnMessage(commands.Cog):
                 unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
                 await message.channel.send(unexpected_error_message)
                 return
-            
-            expected_count = current_count + 1
 
             try:
                 clean_content = message.content.strip().replace("`", "")
@@ -252,7 +250,9 @@ class OnMessage(commands.Cog):
 
             previous_checkpoint = current_count - (current_count % 100)
 
-            if count == expected_count and message.author.id != last_user_id:
+            is_valid = current_count < count <= current_count + 1
+
+            if is_valid and message.author.id != last_user_id:
                 await message.add_reaction("✅")
                 if count == 100: await message.add_reaction("💯")
                 if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
@@ -260,11 +260,11 @@ class OnMessage(commands.Cog):
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
-            elif count != expected_count or message.author.id == last_user_id:
+            elif not is_valid or message.author.id == last_user_id:
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
-                        wrong_but_is_checkpoint = await translate(text="made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=expected_count)
+                        wrong_but_is_checkpoint = await translate(text="made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
                         await message.channel.send(f"{message.author.mention} {wrong_but_is_checkpoint}")
                         data['counting'] = previous_checkpoint
                         data['last_user_id'] = None
