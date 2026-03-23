@@ -261,7 +261,7 @@ class OnMessage(commands.Cog):
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
-            elif is_valid or message.author.id == last_user_id:
+            elif not is_valid or message.author.id == last_user_id:
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
