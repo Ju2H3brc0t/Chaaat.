@@ -226,9 +226,7 @@ class OnMessage(commands.Cog):
             if current_count == None:
                 unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
                 await message.channel.send(unexpected_error_message)
-                return
-
-            expected_count = lambda x: current_count < x <= current_count+1 
+                return 
 
             try:
                 clean_content = message.content.strip().replace(",", ".")
@@ -253,7 +251,9 @@ class OnMessage(commands.Cog):
 
             previous_checkpoint = current_count - (current_count % 100)
 
-            if count in expected_count(count) and message.author.id != last_user_id:
+            is_valid = current_count < count <= current_count+1
+
+            if is_valid and message.author.id != last_user_id:
                 await message.add_reaction("✅")
                 if count == 100: await message.add_reaction("💯")
                 if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
@@ -261,7 +261,7 @@ class OnMessage(commands.Cog):
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
-            elif count not in expected_count or message.author.id == last_user_id:
+            elif is_valid or message.author.id == last_user_id:
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
