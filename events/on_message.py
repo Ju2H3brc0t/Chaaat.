@@ -218,7 +218,8 @@ class OnMessage(commands.Cog):
             "fact": math.factorial,
             "cos": math.cos,
             "sin": math.sin,
-            "binary": lambda x: int(str(x).strip("'").strip('"'), 2)
+            "bin": lambda x: int(x, 2),
+            "hex": lambda x: int(x, 16)
         }
 
         if counting_enabled and channel_id == message.channel.id and not message.author.bot:
@@ -226,15 +227,15 @@ class OnMessage(commands.Cog):
                 unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
                 await message.channel.send(unexpected_error_message)
                 return
-            
-            expected_count = current_count + 1
+
+            expected_count = lambda x: current_count < x <= current_count+1 
 
             try:
-                clean_content = message.content.strip().replace("`", "")
+                clean_content = message.content.strip().replace(",", ".")
                 result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
-                count = int(result)
+                count = float(result)
             except asyncio.TimeoutError:
-                timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=expected_count)
+                timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
                 await message.channel.send(timeout_message)
                 return
             except ValueError:
@@ -245,22 +246,22 @@ class OnMessage(commands.Cog):
             else:
                 is_checkpoint = False
 
-            if expected_count % 100 == 0:
+            if (current_count + 1) % 100 == 0:
                 will_be_checkpoint = True
             else:
                 will_be_checkpoint = False
 
             previous_checkpoint = current_count - (current_count % 100)
 
-            if count == expected_count and message.author.id != last_user_id:
+            if count in expected_count(count) and message.author.id != last_user_id:
                 await message.add_reaction("✅")
                 if count == 100: await message.add_reaction("💯")
                 if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
-                data['counting'] = int(expected_count)
+                data['counting'] = float(count)
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
-            elif count != expected_count or message.author.id == last_user_id:
+            elif count not in expected_count or message.author.id == last_user_id:
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
