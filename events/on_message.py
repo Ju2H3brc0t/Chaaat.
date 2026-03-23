@@ -198,7 +198,7 @@ class OnMessage(commands.Cog):
         counting_enabled = bool(config['features']['counting'].get('enabled'))
         channel_id = int(config['features']['counting'].get('channel_id'))
         checkpoints = bool(config['features']['counting'].get('checkpoints'))
-        current_count = math.floor(data.get('counting', None))
+        current_count = data.get('counting', None)
         raw = data.get('last_user_id')
         last_user_id = int(raw) if raw is not None else None
 
