@@ -15,21 +15,31 @@ Originally designed for a single specific server, this bot is now capable of bei
 
  - The `config.yaml` file contains the configuration of the various features.
 
- - A slash command (`/set_config`) allows you to modify your server configuration.
+ - A slash command (`/config edit`) allows you to modify your server configuration.
 
- - A command (`/view_config`) allows you to display the current configuration in a readable embed.
+ - A command (`/config show`) allows you to display the current configuration in a readable embed.
+
+#### 💬 Automatic translation
+
+ - The bot now have locales, used to translate every message he send depending on the configuration of the server
+
+ - If the bot don't have locales for a language, he will automatically translate the text using Google Translate (not recommended, because translation from Google Transalte are sometime false or a bit weird)
 
 #### 💾 Data storage
 
  - Server-specific data (like score counting) is stored in `server_configs/<guild_id>/data.json`.
 
- - User-specific data (like current level) is stored in `server_configs/<guild_id>/<user_id>.json`
+ - User-specific data (like current level) is stored in a SQLite database (`database.db`)
 
  - Automatic read/write at each affected event.
 
-#### 🔄 Hot reload
+#### 🧑‍💻 Developpers features
 
- - A `/reload` command allows you to reload the cogs without disconnecting it.
+ - A `/dev` command group allows you to do things like update the bot from Github, reload cogs and load new ones, or shutdown the bot itself.
+
+#### 🔨 Server moderator features
+
+ - A `/mod` command group allow you to timeout, kick or ban peoples from your server with a reason and an automatic message sended to the targeted person.
 
 ---
 
@@ -49,7 +59,9 @@ Originally designed for a single specific server, this bot is now capable of bei
     - automatically levels up users when enought XP is reached,
     - assigns level-based roles defined in the server configuration,
     - can stack role or replace the previous one,
-    - sends a level-up announcement embed in a dedicated channel.
+    - sends a level-up announcement embed in a dedicated channel,
+    - can send information about your current level with `/level rank`
+    - can send you the leaderboard with `/level leaderboard`
 
 - A fully automated system to celebrate member's birthday.
     The bot:
