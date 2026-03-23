@@ -232,7 +232,7 @@ class OnMessage(commands.Cog):
                 result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
                 count = int(result)
             except asyncio.TimeoutError:
-                timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=expected_count)
+                timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
                 await message.channel.send(timeout_message)
                 return
             except ValueError:
@@ -243,7 +243,7 @@ class OnMessage(commands.Cog):
             else:
                 is_checkpoint = False
 
-            if expected_count % 100 == 0:
+            if (current_count+1) % 100 == 0:
                 will_be_checkpoint = True
             else:
                 will_be_checkpoint = False
@@ -256,7 +256,7 @@ class OnMessage(commands.Cog):
                 await message.add_reaction("✅")
                 if count == 100: await message.add_reaction("💯")
                 if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
-                data['counting'] = int(expected_count)
+                data['counting'] = count
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
