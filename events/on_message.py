@@ -253,7 +253,7 @@ class OnMessage(commands.Cog):
 
             previous_checkpoint = current_count - (current_count % 100)
 
-            if count == expected_count(count) and message.author.id != last_user_id:
+            if count in expected_count(count) and message.author.id != last_user_id:
                 await message.add_reaction("✅")
                 if count == 100: await message.add_reaction("💯")
                 if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
@@ -261,7 +261,7 @@ class OnMessage(commands.Cog):
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
-            elif count != expected_count or message.author.id == last_user_id:
+            elif count not in expected_count or message.author.id == last_user_id:
                 await message.add_reaction("❌")
                 if checkpoints:
                     if is_checkpoint:
