@@ -199,9 +199,10 @@ class OnMessage(commands.Cog):
         counting_enabled = bool(config['features']['counting'].get('enabled'))
         channel_id = int(config['features']['counting'].get('channel_id'))
         checkpoints = bool(config['features']['counting'].get('checkpoints'))
-        current_count = data.get('counting', None)
-        raw = data.get('last_user_id')
-        last_user_id = int(raw) if raw is not None else None
+        raw_count = data.get('counting', None)
+        current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
+        raw_user = data.get('last_user_id')
+        last_user_id = int(raw_user) if raw_user is not None else None
 
         s = SimpleEval()
         s.names = {
@@ -263,7 +264,7 @@ class OnMessage(commands.Cog):
                 await message.add_reaction("✅")
                 if count == 100: await message.add_reaction("💯")
                 if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
-                data['counting'] = float(count)
+                data['counting'] = str(count)
                 data['last_user_id'] = message.author.id
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
@@ -273,21 +274,21 @@ class OnMessage(commands.Cog):
                     if is_checkpoint:
                         wrong_but_is_checkpoint = await translate(text="made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
                         await message.channel.send(f"{message.author.mention} {wrong_but_is_checkpoint}")
-                        data['counting'] = previous_checkpoint
+                        data['counting'] = str(previous_checkpoint)
                         data['last_user_id'] = None
                         with open(data_path, 'w') as f:
                             json.dump(data, f, indent=4)
                         return
                     wrong_but_checkpoint = await translate(text="made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.", dest_lng=language, previous_checkpoint=previous_checkpoint+1)
                     await message.channel.send(f"{message.author.mention} {wrong_but_checkpoint}")
-                    data['counting'] = previous_checkpoint
+                    data['counting'] = str(previous_checkpoint)
                     data['last_user_id'] = previous_checkpoint
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
                 else:
                     wrong_message = await translate(text=f"made a mistake, the counter has been reset.\n-# Next number is 1.", dest_lng=language)
                     await message.channel.send(f"{message.author.mention} {wrong_message}")
-                    data['counting'] = 0
+                    data['counting'] = str(0)
                     data['last_user_id'] = None
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
