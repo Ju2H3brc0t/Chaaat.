@@ -230,8 +230,7 @@ class OnMessage(commands.Cog):
                 return 
 
             try:
-                clean_content = message.content.strip().replace(",", ".")
-                clean_content = clean_content.content.strip().replace("`", "")
+                clean_content = message.content.strip().replace(",", ".").replace("`", "")
                 result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
                 nb_digits = '0.' + '0' * 50
                 count = Decimal(result).quantize(Decimal(nb_digits), rounding=ROUND_DOWN)
