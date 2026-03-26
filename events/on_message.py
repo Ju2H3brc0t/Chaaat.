@@ -206,13 +206,13 @@ class OnMessage(commands.Cog):
 
         s = SimpleEval()
         s.names = {
-            "pi": math.pi,
-            "π": math.pi,
-            "e": math.e,
-            "tau": math.tau,
-            "τ": math.tau,
-            "phi": (1 + math.sqrt(5)) / 2,
-            "φ": (1 + math.sqrt(5)) / 2,
+            "pi": Decimal("3.14159265358979323846"),
+            "π": Decimal("3.14159265358979323846"),
+            "e": Decimal("2.71828182845904523536"),
+            "tau": Decimal("6.28318530717958647692"),
+            "τ": Decimal("6.28318530717958647692"),
+            "phi": Decimal("1.61803398874989484820"),
+            "φ": Decimal("1.61803398874989484820"),
         }
         s.functions = {
             "sqrt": math.sqrt,
@@ -233,17 +233,13 @@ class OnMessage(commands.Cog):
             try:
                 clean_content = message.content.strip().replace(",", ".").replace("`", "")
                 result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
-                nb_digits = '0.' + '0' * 50
-                count = Decimal(result).quantize(Decimal(nb_digits), rounding=ROUND_DOWN)
-                if count != result:
-                    number_rounded_message = await translate(text="🥀 This number has too many digits after the decimal point, it has been rounded down to {count}", dest_lng=language, count=count)
-                    await message.channel.send(number_rounded_message)
+                count = Decimal(str(result))
 
             except asyncio.TimeoutError:
                 timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
                 await message.channel.send(timeout_message)
                 return
-            except ValueError:
+            except (ValueError, NameError, SyntaxError):
                 return
             
             if current_count % 100 == 0:
@@ -282,7 +278,7 @@ class OnMessage(commands.Cog):
                     wrong_but_checkpoint = await translate(text="made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.", dest_lng=language, previous_checkpoint=previous_checkpoint+1)
                     await message.channel.send(f"{message.author.mention} {wrong_but_checkpoint}")
                     data['counting'] = str(previous_checkpoint)
-                    data['last_user_id'] = previous_checkpoint
+                    data['last_user_id'] = None
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
                 else:
