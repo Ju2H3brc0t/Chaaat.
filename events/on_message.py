@@ -219,8 +219,8 @@ class OnMessage(commands.Cog):
             "fact": math.factorial,
             "cos": math.cos,
             "sin": math.sin,
-            "bin": lambda x: int(x, 2),
-            "hex": lambda x: int(x, 16)
+            "bin": lambda x: int(str(int(x)), 2),
+            "hex": lambda x: int(str(int(x)), 16)
         }
 
         if counting_enabled and channel_id == message.channel.id and not message.author.bot:
