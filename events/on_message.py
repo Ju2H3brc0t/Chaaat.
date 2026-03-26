@@ -2,6 +2,7 @@ from utils import update_db, get_user_from_db, load_config, load_data, translate
 import discord
 from discord.ext import commands
 from simpleeval import SimpleEval
+from decimal import Decimal, ROUND_DOWN
 import asyncio
 import json
 import math
@@ -218,8 +219,8 @@ class OnMessage(commands.Cog):
             "fact": math.factorial,
             "cos": math.cos,
             "sin": math.sin,
-            "bin": lambda x: int(x, 2),
-            "hex": lambda x: int(x, 16)
+            "bin": lambda x: int(str(int(x)), 2),
+            "hex": lambda x: int(str(int(x)), 16)
         }
 
         if counting_enabled and channel_id == message.channel.id and not message.author.bot:
@@ -230,8 +231,14 @@ class OnMessage(commands.Cog):
 
             try:
                 clean_content = message.content.strip().replace(",", ".")
+                clean_content = clean_content.content.strip().replace("`", "")
                 result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
-                count = float(result)
+                nb_digits = '0.' + '0' * 50
+                count = Decimal(result).quantize(Decimal(nb_digits), rounding=ROUND_DOWN)
+                if count != result:
+                    number_rounded_message = await translate(text="🥀 This number has too many digits after the decimal point, it has been rounded down to {count}", dest_lng=language, count=count)
+                    await message.channel.send(number_rounded_message)
+
             except asyncio.TimeoutError:
                 timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
                 await message.channel.send(timeout_message)

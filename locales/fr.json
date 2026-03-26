@@ -49,6 +49,7 @@
     ", you reached level **{level}** and have earned the role": ", vous avez atteint le niveau **{level}** et avez gagné le rôle",
     "To advance to the next level you need **{need}** more experience points": "Pour avancer jusqu'au prochain niveau vous avez besoin de **{need}** points d'expériences supplémentaires",
     "⚠️ An unexpected error occured, please try again later...": "⚠️ Une erreur inconnue s'est produite, veuillez réessayer plus tard...",
+    "🥀 This number has too many digits after the decimal point, it has been rounded down to {count}": "🥀 Ce nombre a trop de chiffres après la virgule, il a été arrondi a {count}",
     "🥀 This calculation is too complex.\n-# Next number is {expected_count}.": "🥀 Ce calcul est trop complexe.\n-# Leprochain nombre est {expected_count}.",
     "made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.": "a fait une erreur, mais le nombre précédent était un checkpoint.\n-# Le prochain nombre est {expected_count}.",
     "made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.": "a fait une erreur, le comptage est revenu au checkpoint précédent.\n-# Le prochain nombre est {expected_count}.",
