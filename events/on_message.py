@@ -2,7 +2,8 @@ from utils import update_db, get_user_from_db, load_config, load_data, translate
 import discord
 from discord.ext import commands
 from simpleeval import SimpleEval
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal
+import requests
 import asyncio
 import json
 import math
@@ -11,6 +12,8 @@ import os
 class OnMessage(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.api_url = f"https://api.groq.com/openai/v1/chat/completions"
+        self.headers = {"Authorization": f"Bearer {os.getenv('GROQ_TOKEN')}", "Content-Type": "application/json"}
         self.evaluator = None
     
     async def cog_load(self):
@@ -111,84 +114,132 @@ class OnMessage(commands.Cog):
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
 
+    async def query_ai(self, message, prompt):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+
+        history = []
+        async for msg in message.channel.history(limit=50, before=message):
+            history.append({
+                "role": "assistant",
+                "content": f"{msg.author.display_name} : {msg.content}"
+            })
+            
+        history.reverse()
+
+        system_prompt = await translate("You are a bot on a Discord server, your username is '{user}'. A user is talking to you, reply to them. Here are some rules to help you: Reply directly and concisely (no more than 3 or 4 sentences), remain neutral and integrated into the conversation, NEVER use meta-comments like 'As an AI', 'Sure!', or 'Here is your answer', START your response immediately with the first word of your actual answer.", dest_lng=language, user=str(self.client.user)[:-5])
+        payload = {
+            "model": "openai/gpt-oss-safeguard-20b",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                *history,
+                {"role": "user", "content": f"{message.author.display_name} : {prompt}"}
+            ],
+            "max_tokens": 250,
+            "temperature": 0.5
+        }
+        response = await asyncio.to_thread(
+            requests.post, self.api_url, headers = self.headers, json = payload, timeout = 15
+        )
+        print(response.status_code)
+        print(response.text)
+        return response.json()
+
+    async def ai(self, message):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+
+        if self.client.user.mentioned_in(message):
+            user_prompt = message.content.replace(f'<@!{self.client.user.id}>', '').replace(f'<@{self.client.user.id}>', '').strip()
+
+            if user_prompt:
+                async with message.channel.typing():
+                    try:
+                        data = await self.query_ai(prompt=user_prompt, message=message)
+                        if 'choices' in data:
+                            answer = data['choices'][0]['message']['content'].strip()
+                        else:
+                            answer = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
+                            print(data)
+
+                        if len(answer) > 2000:
+                            answer = answer[:1990] + "..."
+                        await message.reply(answer)
+                    except Exception:
+                        answer = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
+                        await message.reply(answer)
+
     async def leveling(self, message):
-        try:
-            config = await load_config(guild_id=message.guild.id, auto_create=True)
-            language = str(config['features'].get('language'))
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
 
-            leveling_enabled = bool(config['features']['leveling'].get('enabled'))
-            exclude_channels = [int(channel) for channel in config['features']['leveling'].get('exclude_channels')]
-            boost_channels = [int(channel) for channel in config['features']['leveling'].get('boost_channels')]
-            current_level = await get_user_from_db(data_to_get="level", user_id=message.author.id, guild_id=message.guild.id)
-            current_xp = await get_user_from_db(data_to_get="xp", user_id=message.author.id, guild_id=message.guild.id)
-            xp = current_xp
-            xp_required = 5*(current_level**2)
-            rewards = config['features']['leveling'].get('rewards')
-            stackable = config['features']['leveling'].get('rewards_stackable')
-            channel_id = int(config['features']['leveling'].get('announcement_channel_id'))
-            channel = message.guild.get_channel(channel_id)
+        leveling_enabled = bool(config['features']['leveling'].get('enabled'))
+        exclude_channels = [int(channel) for channel in config['features']['leveling'].get('exclude_channels')]
+        boost_channels = [int(channel) for channel in config['features']['leveling'].get('boost_channels')]
+        current_level = await get_user_from_db(data_to_get="level", user_id=message.author.id, guild_id=message.guild.id)
+        current_xp = await get_user_from_db(data_to_get="xp", user_id=message.author.id, guild_id=message.guild.id)
+        xp = current_xp
+        xp_required = 5*(current_level**2)
+        rewards = config['features']['leveling'].get('rewards')
+        stackable = config['features']['leveling'].get('rewards_stackable')
+        channel_id = int(config['features']['leveling'].get('announcement_channel_id'))
+        channel = message.guild.get_channel(channel_id)
 
-            if leveling_enabled and not message.author.bot:
-                if not message.channel.id in exclude_channels and not message.channel.id in boost_channels: 
-                    await update_db(column="xp", value=current_xp + 1, user_id=message.author.id, guild_id=message.guild.id)
-                    xp = current_xp + 1
-                elif not message.channel.id in exclude_channels and message.channel.id in boost_channels: 
-                    await update_db(column="xp", value=current_xp + 2, user_id=message.author.id, guild_id=message.guild.id)
-                    xp = current_xp + 2
-                if xp >= xp_required:
-                    await update_db(column="level", value=current_level + 1, user_id=message.author.id, guild_id=message.guild.id)
-                    role_id = rewards.get(str(current_level + 1)) or rewards.get(current_level + 1)
-                    if role_id:
-                        role = message.guild.get_role(int(role_id))
-                        if role:
-                            if stackable:
-                                await message.author.add_roles(role)
-                            else:
-                                previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
-                                roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
-                                await message.author.remove_roles(*roles_to_remove)
-                                await message.author.add_roles(role)
-                            embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
-                            embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
-                            embed_description_second_part = await translate(text=", you reached level **{level}** and have earned the role", dest_lng=language)
-                            embed_description_second_part = embed_description_second_part.format(level=current_level+1)
-                            embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language)
-                            embed_description_third_part = embed_description_third_part.format(need=5*((current_level+1)**2))
-                            embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} {role.mention} !\n{embed_description_third_part}'
-
-                            embed = discord.Embed(title=embed_title,
-                                description=embed_description,
-                                colour=discord.Color.gold(),
-                                timestamp=discord.utils.utcnow())
-                        
-                            embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
-
-                            await channel.send(embed=embed)
-
-                            return
-                    else:
+        if leveling_enabled and not message.author.bot:
+            if not message.channel.id in exclude_channels and not message.channel.id in boost_channels: 
+                await update_db(column="xp", value=current_xp + 1, user_id=message.author.id, guild_id=message.guild.id)
+                xp = current_xp + 1
+            elif not message.channel.id in exclude_channels and message.channel.id in boost_channels: 
+                await update_db(column="xp", value=current_xp + 2, user_id=message.author.id, guild_id=message.guild.id)
+                xp = current_xp + 2
+            if xp >= xp_required:
+                await update_db(column="level", value=current_level + 1, user_id=message.author.id, guild_id=message.guild.id)
+                role_id = rewards.get(str(current_level + 1)) or rewards.get(current_level + 1)
+                if role_id:
+                    role = message.guild.get_role(int(role_id))
+                    if role:
+                        if stackable:
+                            await message.author.add_roles(role)
+                        else:
+                            previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
+                            roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
+                            await message.author.remove_roles(*roles_to_remove)
+                            await message.author.add_roles(role)
                         embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
                         embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
-                        embed_description_second_part = await translate(text=", you reached level **{level}**", dest_lng=language)
+                        embed_description_second_part = await translate(text=", you reached level **{level}** and have earned the role", dest_lng=language)
                         embed_description_second_part = embed_description_second_part.format(level=current_level+1)
                         embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language)
                         embed_description_third_part = embed_description_third_part.format(need=5*((current_level+1)**2))
-                        embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} !\n{embed_description_third_part}'
-
+                        embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} {role.mention} !\n{embed_description_third_part}'
 
                         embed = discord.Embed(title=embed_title,
                             description=embed_description,
                             colour=discord.Color.gold(),
                             timestamp=discord.utils.utcnow())
-
+                        
                         embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
 
                         await channel.send(embed=embed)
-        
-        except Exception as e:
-            print(e)
-            import traceback
-            traceback.print_exc()
+
+                        return
+                else:
+                    embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
+                    embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
+                    embed_description_second_part = await translate(text=", you reached level **{level}**", dest_lng=language)
+                    embed_description_second_part = embed_description_second_part.format(level=current_level+1)
+                    embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language)
+                    embed_description_third_part = embed_description_third_part.format(need=5*((current_level+1)**2))
+                    embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} !\n{embed_description_third_part}'
+
+                    embed = discord.Embed(title=embed_title,
+                        description=embed_description,
+                        colour=discord.Color.gold(),
+                        timestamp=discord.utils.utcnow())
+
+                    embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
+
+                    await channel.send(embed=embed)
 
     async def counting(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
@@ -295,10 +346,11 @@ class OnMessage(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
+        await self.counting(message=message)
+        await self.leveling(message=message)
+        await self.ai(message=message)
         await self.message_autodelete(message=message)
         await self.bump_reminder(message=message)
-        await self.leveling(message=message)
-        await self.counting(message=message)
-
+        
 async def setup(client):
     await client.add_cog(OnMessage(client))
