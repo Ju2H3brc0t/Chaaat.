@@ -44,6 +44,7 @@
     "has left the server": "a quitté le serveur",
     "⏰ It's bump time !": "⏰ Il est l'heure de bumper le serveur !",
     "Two hours passed since the last bump, you can bump the server again": "Deux heures sont passées depuis le dernier bump, vous pouvez bump le serveur a nouveau",
+    "You are a bot on a Discord server, your username is '{user}'. A user is talking to you, reply to them. Here are some rules to help you: Reply directly and concisely (no more than 3 or 4 sentences), remain neutral and integrated into the conversation, NEVER use meta-comments like 'As an AI', 'Sure!', or 'Here is your answer', START your response immediately with the first word of your actual answer.": "Tu est un bot sur un serveur Discord, ton pseudo est '{user}' un utilisateur te parle, répond lui. Voici quelque règles pour t'aider: Répond lui dirèctement et de manière concise, (pas plus de 3 ou 4 phrases), reste neutre et intégré a la conversation, n'utilise JAMAIS de métacommentaires comme 'en tant qu'IA', 'Bien sûr' ou 'Voici votre réponse', et commence la rédaction immédiatement par le premier mot de ta réponse.",
     "🎉 New level reached !": "🎉 Nouveau niveau atteint !",
     "Congratulation": "Félicitation",
     ", you reached level **{level}** and have earned the role": ", vous avez atteint le niveau **{level}** et avez gagné le rôle",
