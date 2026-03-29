@@ -127,7 +127,7 @@ class OnMessage(commands.Cog):
             
         history.reverse()
 
-        system_prompt = await translate("You are a bot on a Discord server, your username is '{user}'. A user is talking to you, reply to them. Here are some rules to help you: Reply directly and concisely (no more than 3 or 4 sentences), remain neutral and integrated into the conversation, NEVER use meta-comments like 'As an AI', 'Sure!', or 'Here is your answer', START your response immediately with the first word of your actual answer.", dest_lng=language, user=str(self.client.user)[:-5])
+        system_prompt = f"You are a bot on a Discord server, your username is '{str(self.client.user)[:-5]}'. A user is talking to you, reply to them. Here are some rules to help you: Reply directly and concisely (no more than 3 or 4 sentences), remain neutral and integrated into the conversation, NEVER use meta-comments like 'As an AI', 'Sure!', or 'Here is your answer', START your response immediately with the first word of your actual answer, NEVER prefix your response with your own name or username, respond directly without any prefix and always reply in the same language as the user's message."
         payload = {
             "model": "openai/gpt-oss-safeguard-20b",
             "messages": [
@@ -141,8 +141,6 @@ class OnMessage(commands.Cog):
         response = await asyncio.to_thread(
             requests.post, self.api_url, headers = self.headers, json = payload, timeout = 15
         )
-        print(response.status_code)
-        print(response.text)
         return response.json()
 
     async def ai(self, message):
