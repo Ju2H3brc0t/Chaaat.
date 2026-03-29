@@ -141,8 +141,6 @@ class OnMessage(commands.Cog):
         response = await asyncio.to_thread(
             requests.post, self.api_url, headers = self.headers, json = payload, timeout = 15
         )
-        print(response.status_code)
-        print(response.text)
         return response.json()
 
     async def ai(self, message):
