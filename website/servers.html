@@ -103,7 +103,6 @@
     .page-title em { font-style: italic; color: var(--accent); }
     .page-sub { font-size: 0.875rem; color: var(--muted); font-weight: 300; margin-bottom: 36px; }
 
-    /* Grille serveurs */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -164,7 +163,6 @@
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* État chargement / erreur / vide */
     .state-box {
       grid-column: 1 / -1;
       text-align: center;
@@ -257,9 +255,9 @@
       guilds.forEach((g, i) => {
         const card = document.createElement("a");
         card.className = "server-card";
-        card.href = `accueil.html?guild_id=${g.id}`;
+        card.href = `http://localhost:5000/home.html?guild_id=${g.id}`;
         card.style.animationDelay = `${i * 0.05}s`;
-
+        
         const iconHtml = g.icon
           ? `<img class="server-icon" src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128" alt="${g.name}"/>`
           : `<div class="server-icon-placeholder">${g.name[0].toUpperCase()}</div>`;

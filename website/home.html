@@ -105,6 +105,8 @@
       box-shadow: var(--shadow);
       transition: box-shadow 0.25s, transform 0.25s;
       animation: rise 0.5s cubic-bezier(.22,.68,0,1.2) both;
+      min-width: 0;
+      overflow: hidden;
     }
     .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
     .card:nth-child(1){animation-delay:.05s} .card:nth-child(2){animation-delay:.10s}
@@ -118,7 +120,7 @@
     }
 
     .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .card-title-wrap { display: flex; align-items: center; gap: 11px; }
+    .card-title-wrap { display: flex; align-items: center; gap: 11px; min-width: 0; }
     .card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .card-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .card-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; font-weight: 400; }
@@ -136,18 +138,31 @@
     .toggle.sm input:checked + .toggle-slider::before { transform: translateX(16px); }
 
     .fields { display: flex; flex-direction: column; gap: 14px; }
-    .field-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .field-label { font-size: 0.82rem; color: var(--muted); font-weight: 400; flex-shrink: 0; }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .field-row > div:first-child { flex-shrink: 0; min-width: 0; }
+    .field-label { font-size: 0.82rem; color: var(--muted); font-weight: 400; }
     .field-key { font-size: 0.7rem; color: #b0c2d8; font-family: monospace; margin-top: 1px; }
 
     .field-input {
-      flex: 1; max-width: 180px;
+      flex: 1;
+      min-width: 0;
+      max-width: 180px;
+      width: 100%;
       padding: 8px 12px;
       background: var(--bg); border: 1.5px solid var(--border);
       border-radius: 8px;
       font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text);
       outline: none; transition: border-color 0.2s, box-shadow 0.2s;
       text-align: right;
+      box-sizing: border-box;
     }
     .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background: #fff; }
     .field-input::placeholder { color: #b0c2d8; }
@@ -178,7 +193,9 @@
       display: flex; align-items: center; gap: 8px;
     }
     #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { background: var(--danger); }
     #toast .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    #toast.error .toast-dot { background: #fff; }
 
     .icon-blue   { background: rgba(74,127,212,0.12); } .icon-blue   svg { stroke: var(--accent); }
     .icon-green  { background: rgba(46,204,143,0.12); } .icon-green  svg { stroke: var(--success); }
@@ -191,9 +208,26 @@
 
     .divider { height: 1px; background: var(--border); margin: 14px 0; }
     .section-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      transition: opacity 0.4s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.85rem; color: var(--muted); }
   </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Chargement de la configuration...</div>
+</div>
 
 <header>
   <div class="brand">
@@ -204,9 +238,9 @@
   </div>
   <div class="server-badge">
     <div class="server-dot"></div>
-    <span id="server-name">Serveur #123456789</span>
+    <span id="server-name">Chargement...</span>
   </div>
-  <button class="logout-btn" onclick="window.location.href='login.html'">
+  <button class="logout-btn" onclick="logout()">
     <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     Déconnexion
   </button>
@@ -218,7 +252,6 @@
 
   <div class="grid">
 
-    <!-- ── LEVELING ── -->
     <div class="card disabled" id="card-leveling">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -230,24 +263,24 @@
             <div class="card-desc">features.leveling</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" checked onchange="toggleCard('leveling',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-leveling" onchange="toggleCard('leveling',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
-          <input class="field-input" type="text" value="0" placeholder="ID du salon"/>
+          <input class="field-input" type="text" id="leveling-announcement_channel_id" placeholder="ID du salon"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Salons boostés</div><div class="field-key">boost_channels</div></div>
-          <input class="field-input" type="text" placeholder="id1, id2"/>
+          <input class="field-input" type="text" id="leveling-boost_channels" placeholder="id1, id2"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Salons exclus</div><div class="field-key">exclude_channels</div></div>
-          <input class="field-input" type="text" placeholder="id1, id2"/>
+          <input class="field-input" type="text" id="leveling-exclude_channels" placeholder="id1, id2"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Rôles cumulables</div><div class="field-key">rewards_stackable</div></div>
-          <label class="toggle sm"><input type="checkbox"/><span class="toggle-slider"></span></label>
+          <label class="toggle sm"><input type="checkbox" id="leveling-rewards_stackable"/><span class="toggle-slider"></span></label>
         </div>
         <div class="divider"></div>
         <p class="section-label">Récompenses — rewards (niveau → rôle ID)</p>
@@ -263,13 +296,12 @@
           + Ajouter une récompense
         </button>
       </div>
-      <button class="save-btn" onclick="save('Leveling')">
+      <button class="save-btn" onclick="saveFeature('leveling')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── BIRTHDAY ── -->
     <div class="card disabled" id="card-birthday">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -281,39 +313,38 @@
             <div class="card-desc">features.birthday</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('birthday',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-birthday" onchange="toggleCard('birthday',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
-          <input class="field-input" type="text" value="0" placeholder="ID du salon"/>
+          <input class="field-input" type="text" id="birthday-announcement_channel_id" placeholder="ID du salon"/>
         </div>
         <div class="divider"></div>
         <p class="section-label">Cadeaux — birthday.gift</p>
         <div class="field-row">
           <div><div class="field-label">Cadeaux activés</div><div class="field-key">gift.enabled</div></div>
-          <label class="toggle sm"><input type="checkbox"/><span class="toggle-slider"></span></label>
+          <label class="toggle sm"><input type="checkbox" id="birthday-gift_enabled"/><span class="toggle-slider"></span></label>
         </div>
         <div class="field-row">
           <div><div class="field-label">XP offerte</div><div class="field-key">gift.xp</div></div>
-          <input class="field-input" type="number" value="0" min="0"/>
+          <input class="field-input" type="number" id="birthday-gift_xp" min="0"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Rôles cadeaux</div><div class="field-key">gift.role</div></div>
-          <input class="field-input" type="text" placeholder="id1, id2"/>
+          <input class="field-input" type="text" id="birthday-gift_role" placeholder="id1, id2"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Rôles temporaires</div><div class="field-key">gift.temporary_role</div></div>
-          <input class="field-input" type="text" placeholder="id1, id2"/>
+          <input class="field-input" type="text" id="birthday-gift_temporary_role" placeholder="id1, id2"/>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Anniversaires')">
+      <button class="save-btn" onclick="saveFeature('birthday')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── COUNTING ── -->
     <div class="card disabled" id="card-counting">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -325,25 +356,24 @@
             <div class="card-desc">features.counting</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('counting',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-counting" onchange="toggleCard('counting',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon de comptage</div><div class="field-key">channel_id</div></div>
-          <input class="field-input" type="text" value="0" placeholder="ID du salon"/>
+          <input class="field-input" type="text" id="counting-channel_id" placeholder="ID du salon"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Checkpoints (×100)</div><div class="field-key">checkpoints</div></div>
-          <label class="toggle sm"><input type="checkbox"/><span class="toggle-slider"></span></label>
+          <label class="toggle sm"><input type="checkbox" id="counting-checkpoints"/><span class="toggle-slider"></span></label>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Comptage')">
+      <button class="save-btn" onclick="saveFeature('counting')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── BUMP REMINDER ── -->
     <div class="card disabled" id="card-bump">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -355,21 +385,20 @@
             <div class="card-desc">features.bump_reminder</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('bump',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-bump" onchange="toggleCard('bump',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon de rappel</div><div class="field-key">channel</div></div>
-          <input class="field-input" type="text" value="0" placeholder="ID du salon"/>
+          <input class="field-input" type="text" id="bump-channel" placeholder="ID du salon"/>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Bump Reminder')">
+      <button class="save-btn" onclick="saveFeature('bump_reminder')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── WELCOME ── -->
     <div class="card disabled" id="card-welcome">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -381,21 +410,20 @@
             <div class="card-desc">features.welcome</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('welcome',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-welcome" onchange="toggleCard('welcome',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon de bienvenue</div><div class="field-key">channel_id</div></div>
-          <input class="field-input" type="text" value="0" placeholder="ID du salon"/>
+          <input class="field-input" type="text" id="welcome-channel_id" placeholder="ID du salon"/>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Welcome')">
+      <button class="save-btn" onclick="saveFeature('welcome')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── GOODBYE ── -->
     <div class="card disabled" id="card-goodbye">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -407,21 +435,20 @@
             <div class="card-desc">features.goodbye</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('goodbye',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-goodbye" onchange="toggleCard('goodbye',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon d'au revoir</div><div class="field-key">channel_id</div></div>
-          <input class="field-input" type="text" value="0" placeholder="ID du salon"/>
+          <input class="field-input" type="text" id="goodbye-channel_id" placeholder="ID du salon"/>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Goodbye')">
+      <button class="save-btn" onclick="saveFeature('goodbye')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── MEMBER ROLE ── -->
     <div class="card disabled" id="card-member">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -433,21 +460,20 @@
             <div class="card-desc">features.member_role</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('member',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-member" onchange="toggleCard('member',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Rôles attribués</div><div class="field-key">role_id</div></div>
-          <input class="field-input" type="text" placeholder="id1, id2"/>
+          <input class="field-input" type="text" id="member-role_id" placeholder="id1, id2"/>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Rôle Membre')">
+      <button class="save-btn" onclick="saveFeature('member_role')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
     </div>
 
-    <!-- ── MESSAGE AUTODELETE ── -->
     <div class="card disabled" id="card-autodelete">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -459,19 +485,19 @@
             <div class="card-desc">features.message_autodelete</div>
           </div>
         </div>
-        <label class="toggle"><input type="checkbox" onchange="toggleCard('autodelete',this)"/><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="toggle-autodelete" onchange="toggleCard('autodelete',this)"/><span class="toggle-slider"></span></label>
       </div>
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Délai avant suppression</div><div class="field-key">wait (secondes)</div></div>
-          <input class="field-input" type="number" value="0" min="0"/>
+          <input class="field-input" type="number" id="autodelete-wait" min="0"/>
         </div>
         <div class="field-row">
           <div><div class="field-label">Salons concernés</div><div class="field-key">channels_id</div></div>
-          <input class="field-input" type="text" placeholder="id1, id2"/>
+          <input class="field-input" type="text" id="autodelete-channels_id" placeholder="id1, id2"/>
         </div>
       </div>
-      <button class="save-btn" onclick="save('Autosuppression')">
+      <button class="save-btn" onclick="saveFeature('message_autodelete')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
       </button>
@@ -486,27 +512,229 @@
 </div>
 
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const guildId = params.get('guild_id') || '123456789';
+  const params  = new URLSearchParams(window.location.search);
+  const guildId = params.get('guild_id');
+
+  if (!guildId) window.location.href = 'servers.html';
+
   document.getElementById('server-name').textContent = 'Serveur #' + guildId;
+
+  function parseList(val) {
+    if (!val || String(val).trim() === '' || String(val).trim() === '0') return [];
+    return String(val).split(',').map(s => s.trim()).filter(Boolean).map(s => isNaN(s) ? s : Number(s));
+  }
+
+  function listToString(arr) {
+    if (!arr || arr.length === 0) return '';
+    return arr.join(', ');
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') { el.checked = !!val; }
+    else if (Array.isArray(val)) { el.value = listToString(val); }
+    else { el.value = (val === 0 || val === null || val === undefined) ? '' : val; }
+  }
+
+  function getVal(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    if (el.type === 'checkbox') return el.checked;
+    if (el.type === 'number') return el.value === '' ? 0 : Number(el.value);
+    return el.value;
+  }
 
   function toggleCard(id, checkbox) {
     const card = document.getElementById('card-' + id);
     card.classList.toggle('disabled', !checkbox.checked);
   }
 
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  let currentConfig = null;
+
+  async function loadConfig() {
+    try {
+      const res = await fetch(`http://localhost:5000/api/config/${guildId}`, { credentials: 'include' });
+      if (res.status === 401) { window.location.href = 'login.html'; return; }
+      if (res.status === 403) { window.location.href = 'servers.html'; return; }
+      if (!res.ok) throw new Error('Erreur serveur');
+
+      currentConfig = await res.json();
+      populateForm(currentConfig);
+    } catch (e) {
+      showToast('Erreur de chargement', true);
+    } finally {
+      document.getElementById('loading').classList.add('hidden');
+    }
+  }
+
+  function populateForm(cfg) {
+    const f = cfg.features;
+
+    const lv = f.leveling || {};
+    document.getElementById('toggle-leveling').checked = !!lv.enabled;
+    toggleCard('leveling', { checked: !!lv.enabled });
+    setVal('leveling-announcement_channel_id', lv.announcement_channel_id);
+    setVal('leveling-boost_channels', lv.boost_channels);
+    setVal('leveling-exclude_channels', lv.exclude_channels);
+    setVal('leveling-rewards_stackable', lv.rewards_stackable);
+    const rewardsList = document.getElementById('rewards-list');
+    rewardsList.innerHTML = '';
+    rewardCount = 0;
+    const rewards = lv.rewards || {};
+    Object.entries(rewards).forEach(([level, role]) => {
+      if (level === '0' && role === 0) return; 
+      addReward(level, role);
+    });
+
+    const bd = f.birthday || {};
+    document.getElementById('toggle-birthday').checked = !!bd.enabled;
+    toggleCard('birthday', { checked: !!bd.enabled });
+    setVal('birthday-announcement_channel_id', bd.announcement_channel_id);
+    const gift = bd.gift || {};
+    setVal('birthday-gift_enabled', gift.enabled);
+    setVal('birthday-gift_xp', gift.xp);
+    setVal('birthday-gift_role', gift.role);
+    setVal('birthday-gift_temporary_role', gift.temporary_role);
+
+    const ct = f.counting || {};
+    document.getElementById('toggle-counting').checked = !!ct.enabled;
+    toggleCard('counting', { checked: !!ct.enabled });
+    setVal('counting-channel_id', ct.channel_id);
+    setVal('counting-checkpoints', ct.checkpoints);
+
+    const bp = f.bump_reminder || {};
+    document.getElementById('toggle-bump').checked = !!bp.enabled;
+    toggleCard('bump', { checked: !!bp.enabled });
+    setVal('bump-channel', bp.channel);
+
+    const wc = f.welcome || {};
+    document.getElementById('toggle-welcome').checked = !!wc.enabled;
+    toggleCard('welcome', { checked: !!wc.enabled });
+    setVal('welcome-channel_id', wc.channel_id);
+
+    const gb = f.goodbye || {};
+    document.getElementById('toggle-goodbye').checked = !!gb.enabled;
+    toggleCard('goodbye', { checked: !!gb.enabled });
+    setVal('goodbye-channel_id', gb.channel_id);
+
+    const mr = f.member_role || {};
+    document.getElementById('toggle-member').checked = !!mr.enabled;
+    toggleCard('member', { checked: !!mr.enabled });
+    setVal('member-role_id', mr.role_id);
+
+    const ad = f.message_autodelete || {};
+    document.getElementById('toggle-autodelete').checked = !!ad.enabled;
+    toggleCard('autodelete', { checked: !!ad.enabled });
+    setVal('autodelete-wait', ad.wait);
+    setVal('autodelete-channels_id', ad.channels_id);
+  }
+
+  async function saveFeature(feature) {
+    if (!currentConfig) return;
+
+    const f = currentConfig.features;
+
+    if (feature === 'leveling') {
+      const rewards = {};
+      document.querySelectorAll('#rewards-list > div[id^="reward-"]').forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const level = inputs[0].value;
+        const role  = inputs[1].value;
+        if (level && role) rewards[level] = Number(role);
+      });
+      f.leveling = {
+        enabled: document.getElementById('toggle-leveling').checked,
+        announcement_channel_id: Number(getVal('leveling-announcement_channel_id')) || 0,
+        boost_channels:  parseList(getVal('leveling-boost_channels')),
+        exclude_channels: parseList(getVal('leveling-exclude_channels')),
+        rewards_stackable: getVal('leveling-rewards_stackable'),
+        rewards: Object.keys(rewards).length ? rewards : { "0": 0 }
+      };
+    } else if (feature === 'birthday') {
+      f.birthday = {
+        enabled: document.getElementById('toggle-birthday').checked,
+        announcement_channel_id: Number(getVal('birthday-announcement_channel_id')) || 0,
+        gift: {
+          enabled: getVal('birthday-gift_enabled'),
+          xp: Number(getVal('birthday-gift_xp')) || 0,
+          role: parseList(getVal('birthday-gift_role')),
+          temporary_role: parseList(getVal('birthday-gift_temporary_role'))
+        }
+      };
+    } else if (feature === 'counting') {
+      f.counting = {
+        enabled: document.getElementById('toggle-counting').checked,
+        channel_id: Number(getVal('counting-channel_id')) || 0,
+        checkpoints: getVal('counting-checkpoints')
+      };
+    } else if (feature === 'bump_reminder') {
+      f.bump_reminder = {
+        enabled: document.getElementById('toggle-bump').checked,
+        channel: Number(getVal('bump-channel')) || 0
+      };
+    } else if (feature === 'welcome') {
+      f.welcome = {
+        enabled: document.getElementById('toggle-welcome').checked,
+        channel_id: Number(getVal('welcome-channel_id')) || 0
+      };
+    } else if (feature === 'goodbye') {
+      f.goodbye = {
+        enabled: document.getElementById('toggle-goodbye').checked,
+        channel_id: Number(getVal('goodbye-channel_id')) || 0
+      };
+    } else if (feature === 'member_role') {
+      f.member_role = {
+        enabled: document.getElementById('toggle-member').checked,
+        role_id: parseList(getVal('member-role_id'))
+      };
+    } else if (feature === 'message_autodelete') {
+      f.message_autodelete = {
+        enabled: document.getElementById('toggle-autodelete').checked,
+        wait: Number(getVal('autodelete-wait')) || 0,
+        channels_id: parseList(getVal('autodelete-channels_id'))
+      };
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/config/${guildId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentConfig)
+      });
+      if (res.status === 401) { window.location.href = 'login.html'; return; }
+      if (res.status === 403) { showToast('Accès refusé', true); return; }
+      if (!res.ok) throw new Error();
+      showToast('✓ ' + feature + ' sauvegardé !');
+    } catch {
+      showToast('Erreur de sauvegarde', true);
+    }
+  }
   let rewardCount = 0;
 
-  function addReward() {
+  function addReward(level = '', role = '') {
     rewardCount++;
     const id = 'reward-' + rewardCount;
     const row = document.createElement('div');
     row.id = id;
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;';
     row.innerHTML = `
-      <input class="field-input" type="number" min="1" max="999" placeholder="Niveau" style="max-width:80px;text-align:center;flex:none;"/>
+      <input class="field-input" type="number" min="1" max="999" placeholder="Niveau"
+        value="${level}"
+        style="max-width:72px;text-align:center;flex:none;min-width:0;"/>
       <span style="color:var(--muted);font-size:0.8rem;flex-shrink:0;">→</span>
-      <input class="field-input" type="text" placeholder="Rôle ID" style="max-width:none;flex:1;text-align:left;"/>
+      <input class="field-input" type="text" placeholder="Rôle ID"
+        value="${role}"
+        style="max-width:none;flex:1;text-align:left;min-width:0;"/>
       <button type="button" onclick="removeReward('${id}')" style="
         background:none;border:none;cursor:pointer;padding:4px;
         color:var(--muted);transition:color 0.2s;flex-shrink:0;"
@@ -523,12 +751,11 @@
     document.getElementById(id)?.remove();
   }
 
-  function save(name) {
-    const toast = document.getElementById('toast');
-    document.getElementById('toast-msg').textContent = name + ' sauvegardé !';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
+  async function logout() {
+    await fetch('http://localhost:5000/api/logout', { credentials: 'include' });
+    window.location.href = 'login.html';
   }
+  loadConfig();
 </script>
 </body>
 </html>
