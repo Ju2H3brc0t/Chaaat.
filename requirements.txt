@@ -4,3 +4,5 @@ pyyaml == 6.0.2
 deep-translator == 1.11.4
 aiosqlite == 0.22.1
 simpleeval == 1.0.3
+urlextract == 1.9.0
+pysafebrowsing == 0.1.4
