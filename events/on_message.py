@@ -3,6 +3,9 @@ import discord
 from discord.ext import commands
 from simpleeval import SimpleEval
 from decimal import Decimal
+from urlextract import URLExtract
+from urllib.parse import urlparse
+from pysafebrowsing import SafeBrowsing
 import requests
 import asyncio
 import json
@@ -14,6 +17,9 @@ class OnMessage(commands.Cog):
         self.client = client
         self.api_url = f"https://api.groq.com/openai/v1/chat/completions"
         self.headers = {"Authorization": f"Bearer {os.getenv('GROQ_TOKEN')}", "Content-Type": "application/json"}
+        self.sb_api_key = os.getenv('GOOGLE_SAFEBROWSING_KEY')
+        self.sb = SafeBrowsing(api_key=self.sb_api_key)
+        self.extractor = URLExtract()
         self.evaluator = None
     
     async def cog_load(self):
@@ -113,11 +119,50 @@ class OnMessage(commands.Cog):
                 data['next_bump'] = "Anytime"
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
+    
+    async def clean_domain(self, url):
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
 
-    async def query_ai(self, message, prompt):
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc.lower()
+
+        if domain.startswith("www."):
+            domain = domain[4:]
+        return domain
+
+    async def filter_link(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
         language = str(config['features'].get('language'))
 
+        dm_message = await translate(text="⚠️ Your message contains a link that is not allowed on this server.", dest_lng=language)
+
+        urls = self.extractor.find_urls(message.content)
+
+        if not urls:
+            return
+
+        for url in urls:
+            domain = await self.clean_domain(url=url)
+            if domain in config['features']['link_filter'].get('blacklist'):
+                await message.author.send(dm_message)
+                try: 
+                    await message.delete()
+                except discord.Forbidden:
+                    pass
+                return
+
+            if domain in config['features']['link_filter'].get('whitelist'):
+                continue
+
+            prediction = self.sb.lookup_urls([url])
+
+            if prediction[url]['malicious']:
+                await message.author.send(dm_message)
+                await message.delete()
+                return
+
+    async def query_ai(self, message, prompt):
         history = []
         async for msg in message.channel.history(limit=50, before=message):
             history.append({
