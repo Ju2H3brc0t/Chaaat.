@@ -7,10 +7,10 @@ import yaml
 app = Flask(__name__, static_folder='.')
 CORS(app, supports_credentials=True, origins=["http://localhost:5000"])
 
-app.secret_key = "change-moi-par-une-vraie-cle-secrete-longue"
+app.secret_key = os.getenv("APP_SECRET_KEY")
 
-CLIENT_ID     = "1488164129087684789"
-CLIENT_SECRET = "cpJI8aZ71Gk_36LX3ZfpVHxCyvQGDnYF"
+CLIENT_ID     = os.getenv("DISCORD_CLIENT_ID")
+CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 REDIRECT_URI  = "http://localhost:5000/callback"
 
 DISCORD_API   = "https://discord.com/api/v10"
@@ -22,7 +22,7 @@ OAUTH2_URL    = (
     f"&scope=identify+guilds"
 )
 
-BOT_TOKEN   = "VOTRE_BOT_TOKEN_ICI"  # ← remplace par ton vrai token
+BOT_TOKEN   = os.getenv("DISCORD_BOT_TOKEN")
 
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR  = os.path.dirname(BASE_DIR)                    
@@ -148,7 +148,7 @@ def guild_channels(guild_id):
     channels = [
         {"id": c["id"], "name": c["name"], "type": c["type"]}
         for c in r.json()
-        if c["type"] in (0, 4, 5, 15)  # text, category, announcement, forum
+        if c["type"] in (0, 4, 5, 15)
     ]
     channels.sort(key=lambda c: c["name"].lower())
     return jsonify(channels)
@@ -178,7 +178,6 @@ def get_config(guild_id):
     if "guilds" not in session:
         return jsonify({"error": "Non connecté"}), 401
 
-    # Vérifie que l'utilisateur est bien admin du serveur demandé
     guild_ids = [g["id"] for g in session["guilds"]]
     if guild_id not in guild_ids:
         return jsonify({"error": "Accès refusé"}), 403
