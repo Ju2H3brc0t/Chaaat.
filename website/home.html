@@ -167,6 +167,51 @@
     .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background: #fff; }
     .field-input::placeholder { color: #b0c2d8; }
 
+    /* ── Dropdown select simple ── */
+    .field-select {
+      flex: 1; min-width: 0; max-width: 200px;
+      padding: 8px 28px 8px 10px;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text);
+      outline: none; appearance: none; cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
+
+    /* ── Multi-select custom ── */
+    .multiselect-wrap { flex: 1; min-width: 120px; max-width: 200px; position: relative; }
+    .multiselect-box {
+      min-height: 36px; padding: 4px 28px 4px 8px;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+      transition: border-color 0.2s;
+    }
+    .multiselect-box:focus-within, .multiselect-box.open { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
+    .multiselect-tag {
+      background: var(--accent-soft); color: var(--accent);
+      border-radius: 5px; padding: 2px 6px; font-size: 0.75rem; font-weight: 500;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .multiselect-tag button { background: none; border: none; cursor: pointer; color: var(--accent); padding: 0; font-size: 0.75rem; line-height: 1; }
+    .multiselect-placeholder { font-size: 0.82rem; color: #b0c2d8; padding: 2px 4px; }
+    .multiselect-dropdown {
+      position: absolute; top: calc(100% + 4px); right: 0; left: 0; z-index: 50;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(74,127,212,0.12);
+      max-height: 200px; overflow-y: auto; display: none;
+    }
+    .multiselect-dropdown.open { display: block; }
+    .multiselect-option {
+      padding: 8px 12px; font-size: 0.83rem; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: background 0.15s;
+    }
+    .multiselect-option:hover { background: var(--accent-soft); }
+    .multiselect-option.selected { color: var(--accent); font-weight: 500; }
+    .multiselect-option input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; }
+
     .card.disabled .fields { opacity: 0.38; pointer-events: none; }
     .card.disabled .card-title { color: var(--muted); }
 
@@ -268,15 +313,15 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
-          <input class="field-input" type="text" id="leveling-announcement_channel_id" placeholder="ID du salon"/>
+          <select class="field-select" id="leveling-announcement_channel_id"><option value="0">— Aucun —</option></select>
         </div>
         <div class="field-row">
           <div><div class="field-label">Salons boostés</div><div class="field-key">boost_channels</div></div>
-          <input class="field-input" type="text" id="leveling-boost_channels" placeholder="id1, id2"/>
+          <div class="multiselect-wrap" id="ms-leveling-boost_channels"></div>
         </div>
         <div class="field-row">
           <div><div class="field-label">Salons exclus</div><div class="field-key">exclude_channels</div></div>
-          <input class="field-input" type="text" id="leveling-exclude_channels" placeholder="id1, id2"/>
+          <div class="multiselect-wrap" id="ms-leveling-exclude_channels"></div>
         </div>
         <div class="field-row">
           <div><div class="field-label">Rôles cumulables</div><div class="field-key">rewards_stackable</div></div>
@@ -318,7 +363,7 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
-          <input class="field-input" type="text" id="birthday-announcement_channel_id" placeholder="ID du salon"/>
+          <select class="field-select" id="birthday-announcement_channel_id"><option value="0">— Aucun —</option></select>
         </div>
         <div class="divider"></div>
         <p class="section-label">Cadeaux — birthday.gift</p>
@@ -332,11 +377,11 @@
         </div>
         <div class="field-row">
           <div><div class="field-label">Rôles cadeaux</div><div class="field-key">gift.role</div></div>
-          <input class="field-input" type="text" id="birthday-gift_role" placeholder="id1, id2"/>
+          <div class="multiselect-wrap" id="ms-birthday-gift_role"></div>
         </div>
         <div class="field-row">
           <div><div class="field-label">Rôles temporaires</div><div class="field-key">gift.temporary_role</div></div>
-          <input class="field-input" type="text" id="birthday-gift_temporary_role" placeholder="id1, id2"/>
+          <div class="multiselect-wrap" id="ms-birthday-gift_temporary_role"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('birthday')">
@@ -361,7 +406,7 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon de comptage</div><div class="field-key">channel_id</div></div>
-          <input class="field-input" type="text" id="counting-channel_id" placeholder="ID du salon"/>
+          <select class="field-select" id="counting-channel_id"><option value="0">— Aucun —</option></select>
         </div>
         <div class="field-row">
           <div><div class="field-label">Checkpoints (×100)</div><div class="field-key">checkpoints</div></div>
@@ -390,7 +435,7 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon de rappel</div><div class="field-key">channel</div></div>
-          <input class="field-input" type="text" id="bump-channel" placeholder="ID du salon"/>
+          <select class="field-select" id="bump-channel"><option value="0">— Aucun —</option></select>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('bump_reminder')">
@@ -415,7 +460,7 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon de bienvenue</div><div class="field-key">channel_id</div></div>
-          <input class="field-input" type="text" id="welcome-channel_id" placeholder="ID du salon"/>
+          <select class="field-select" id="welcome-channel_id"><option value="0">— Aucun —</option></select>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('welcome')">
@@ -440,7 +485,7 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Salon d'au revoir</div><div class="field-key">channel_id</div></div>
-          <input class="field-input" type="text" id="goodbye-channel_id" placeholder="ID du salon"/>
+          <select class="field-select" id="goodbye-channel_id"><option value="0">— Aucun —</option></select>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('goodbye')">
@@ -465,7 +510,7 @@
       <div class="fields">
         <div class="field-row">
           <div><div class="field-label">Rôles attribués</div><div class="field-key">role_id</div></div>
-          <input class="field-input" type="text" id="member-role_id" placeholder="id1, id2"/>
+          <div class="multiselect-wrap" id="ms-member-role_id"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('member_role')">
@@ -494,7 +539,7 @@
         </div>
         <div class="field-row">
           <div><div class="field-label">Salons concernés</div><div class="field-key">channels_id</div></div>
-          <input class="field-input" type="text" id="autodelete-channels_id" placeholder="id1, id2"/>
+          <div class="multiselect-wrap" id="ms-autodelete-channels_id"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('message_autodelete')">
@@ -519,35 +564,180 @@
 
   document.getElementById('server-name').textContent = 'Serveur #' + guildId;
 
-  function parseList(val) {
-    if (!val || String(val).trim() === '' || String(val).trim() === '0') return [];
-    return String(val).split(',').map(s => s.trim()).filter(Boolean).map(s => isNaN(s) ? s : Number(s));
+  // ── Données Discord chargées ──────────────────────────────
+  let discordChannels = [];
+  let discordRoles    = [];
+
+  // ── Multi-select ──────────────────────────────────────────
+  function buildMultiSelect(wrapId, items, selectedIds = [], colorFn = null) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    let selected = selectedIds.map(String);
+
+    const box = document.createElement('div');
+    box.className = 'multiselect-box';
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'multiselect-dropdown';
+
+    function renderTags() {
+      box.innerHTML = '';
+      if (selected.length === 0) {
+        box.innerHTML = '<span class="multiselect-placeholder">— Aucun —</span>';
+      } else {
+        selected.forEach(id => {
+          const item = items.find(i => String(i.id) === id);
+          const tag = document.createElement('span');
+          tag.className = 'multiselect-tag';
+          tag.innerHTML = `${item ? item.name : id} <button type="button" data-id="${id}">×</button>`;
+          tag.querySelector('button').addEventListener('click', e => {
+            e.stopPropagation();
+            selected = selected.filter(s => s !== id);
+            renderTags(); renderOptions();
+          });
+          box.appendChild(tag);
+        });
+      }
+      // arrow spacer
+      const sp = document.createElement('span');
+      sp.style.cssText = 'flex:1;min-width:0;';
+      box.appendChild(sp);
+    }
+
+    function renderOptions() {
+      dropdown.innerHTML = '';
+      items.forEach(item => {
+        const opt = document.createElement('div');
+        opt.className = 'multiselect-option' + (selected.includes(String(item.id)) ? ' selected' : '');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = selected.includes(String(item.id));
+        cb.addEventListener('change', () => {
+          if (cb.checked) { if (!selected.includes(String(item.id))) selected.push(String(item.id)); }
+          else { selected = selected.filter(s => s !== String(item.id)); }
+          renderTags(); renderOptions();
+        });
+
+        // Couleur du rôle si dispo
+        let label = item.name;
+        if (colorFn) {
+          const hex = colorFn(item);
+          if (hex) label = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${hex};margin-right:4px;flex-shrink:0;"></span>${item.name}`;
+        }
+        opt.innerHTML = ``;
+        opt.prepend(cb);
+        const span = document.createElement('span');
+        span.innerHTML = label;
+        opt.appendChild(span);
+        dropdown.appendChild(opt);
+      });
+    }
+
+    box.addEventListener('click', e => {
+      const isOpen = dropdown.classList.contains('open');
+      // ferme tous les autres
+      document.querySelectorAll('.multiselect-dropdown.open').forEach(d => {
+        d.classList.remove('open');
+        d.previousSibling?.classList?.remove('open');
+      });
+      if (!isOpen) { dropdown.classList.add('open'); box.classList.add('open'); }
+    });
+
+    document.addEventListener('click', e => {
+      if (!wrap.contains(e.target)) {
+        dropdown.classList.remove('open');
+        box.classList.remove('open');
+      }
+    }, true);
+
+    renderTags();
+    renderOptions();
+    wrap.appendChild(box);
+    wrap.appendChild(dropdown);
+
+    // API pour lire/écrire
+    wrap._getSelected = () => selected.map(Number);
+    wrap._setSelected = (ids) => {
+      selected = (ids || []).map(String);
+      renderTags(); renderOptions();
+    };
   }
 
-  function listToString(arr) {
-    if (!arr || arr.length === 0) return '';
-    return arr.join(', ');
+  function roleColor(role) {
+    if (!role.color) return null;
+    return '#' + role.color.toString(16).padStart(6, '0');
   }
 
+  function populateSelects(channels, roles) {
+    // Sélects simples — salons
+    const channelSelects = [
+      'leveling-announcement_channel_id',
+      'birthday-announcement_channel_id',
+      'counting-channel_id',
+      'bump-channel',
+      'welcome-channel_id',
+      'goodbye-channel_id',
+    ];
+    channelSelects.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="0">— Aucun —</option>';
+      channels.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = (c.type === 4 ? '📁 ' : '#') + c.name;
+        sel.appendChild(opt);
+      });
+      sel.value = cur || '0';
+    });
+
+    // Multi-selects salons
+    buildMultiSelect('ms-leveling-boost_channels',    channels);
+    buildMultiSelect('ms-leveling-exclude_channels',  channels);
+    buildMultiSelect('ms-autodelete-channels_id',     channels);
+
+    // Multi-selects rôles
+    buildMultiSelect('ms-birthday-gift_role',           roles, [], roleColor);
+    buildMultiSelect('ms-birthday-gift_temporary_role', roles, [], roleColor);
+    buildMultiSelect('ms-member-role_id',               roles, [], roleColor);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
   function setVal(id, val) {
     const el = document.getElementById(id);
+    const ms = document.getElementById('ms-' + id);
+
+    if (ms) {
+      ms._setSelected(Array.isArray(val) ? val : (val ? [val] : []));
+      return;
+    }
     if (!el) return;
-    if (el.type === 'checkbox') { el.checked = !!val; }
-    else if (Array.isArray(val)) { el.value = listToString(val); }
-    else { el.value = (val === 0 || val === null || val === undefined) ? '' : val; }
+    if (el.tagName === 'SELECT') {
+      el.value = val ? String(val) : '0';
+      return;
+    }
+    if (el.type === 'checkbox') { el.checked = !!val; return; }
+    if (Array.isArray(val)) { el.value = val.join(', '); return; }
+    el.value = (val === 0 || val === null || val === undefined) ? '' : val;
   }
 
   function getVal(id) {
     const el = document.getElementById(id);
+    const ms = document.getElementById('ms-' + id);
+
+    if (ms) return ms._getSelected ? ms._getSelected() : [];
     if (!el) return null;
+    if (el.tagName === 'SELECT') return el.value;
     if (el.type === 'checkbox') return el.checked;
     if (el.type === 'number') return el.value === '' ? 0 : Number(el.value);
     return el.value;
   }
 
   function toggleCard(id, checkbox) {
-    const card = document.getElementById('card-' + id);
-    card.classList.toggle('disabled', !checkbox.checked);
+    document.getElementById('card-' + id).classList.toggle('disabled', !checkbox.checked);
   }
 
   function showToast(msg, isError = false) {
@@ -562,12 +752,25 @@
 
   async function loadConfig() {
     try {
-      const res = await fetch(`http://localhost:5000/api/config/${guildId}`, { credentials: 'include' });
-      if (res.status === 401) { window.location.href = 'login.html'; return; }
-      if (res.status === 403) { window.location.href = 'servers.html'; return; }
-      if (!res.ok) throw new Error('Erreur serveur');
+      // Charger salons, rôles et config en parallèle
+      const [chRes, roRes, cfRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/guild/${guildId}/channels`, { credentials: 'include' }),
+        fetch(`http://localhost:5000/api/guild/${guildId}/roles`,    { credentials: 'include' }),
+        fetch(`http://localhost:5000/api/config/${guildId}`,         { credentials: 'include' }),
+      ]);
 
-      currentConfig = await res.json();
+      if (cfRes.status === 401 || chRes.status === 401) { window.location.href = 'login.html'; return; }
+      if (cfRes.status === 403) { window.location.href = 'servers.html'; return; }
+      if (!cfRes.ok) throw new Error('Erreur config');
+
+      discordChannels = chRes.ok ? await chRes.json() : [];
+      discordRoles    = roRes.ok ? await roRes.json() : [];
+
+      if (!chRes.ok) showToast('⚠️ Salons non chargés (bot absent ?)', true);
+
+      populateSelects(discordChannels, discordRoles);
+
+      currentConfig = await cfRes.json();
       populateForm(currentConfig);
     } catch (e) {
       showToast('Erreur de chargement', true);
@@ -583,15 +786,14 @@
     document.getElementById('toggle-leveling').checked = !!lv.enabled;
     toggleCard('leveling', { checked: !!lv.enabled });
     setVal('leveling-announcement_channel_id', lv.announcement_channel_id);
-    setVal('leveling-boost_channels', lv.boost_channels);
+    setVal('leveling-boost_channels',  lv.boost_channels);
     setVal('leveling-exclude_channels', lv.exclude_channels);
     setVal('leveling-rewards_stackable', lv.rewards_stackable);
     const rewardsList = document.getElementById('rewards-list');
     rewardsList.innerHTML = '';
     rewardCount = 0;
-    const rewards = lv.rewards || {};
-    Object.entries(rewards).forEach(([level, role]) => {
-      if (level === '0' && role === 0) return; 
+    Object.entries(lv.rewards || {}).forEach(([level, role]) => {
+      if (level === '0' && role === 0) return;
       addReward(level, role);
     });
 
@@ -640,22 +842,22 @@
 
   async function saveFeature(feature) {
     if (!currentConfig) return;
-
     const f = currentConfig.features;
 
     if (feature === 'leveling') {
       const rewards = {};
       document.querySelectorAll('#rewards-list > div[id^="reward-"]').forEach(row => {
-        const inputs = row.querySelectorAll('input');
+        const inputs = row.querySelectorAll('input[type=number], input[type=text], select');
         const level = inputs[0].value;
-        const role  = inputs[1].value;
+        const roleEl = inputs[1];
+        const role = roleEl.tagName === 'SELECT' ? roleEl.value : roleEl.value;
         if (level && role) rewards[level] = Number(role);
       });
       f.leveling = {
         enabled: document.getElementById('toggle-leveling').checked,
         announcement_channel_id: Number(getVal('leveling-announcement_channel_id')) || 0,
-        boost_channels:  parseList(getVal('leveling-boost_channels')),
-        exclude_channels: parseList(getVal('leveling-exclude_channels')),
+        boost_channels:   getVal('leveling-boost_channels'),
+        exclude_channels: getVal('leveling-exclude_channels'),
         rewards_stackable: getVal('leveling-rewards_stackable'),
         rewards: Object.keys(rewards).length ? rewards : { "0": 0 }
       };
@@ -666,8 +868,8 @@
         gift: {
           enabled: getVal('birthday-gift_enabled'),
           xp: Number(getVal('birthday-gift_xp')) || 0,
-          role: parseList(getVal('birthday-gift_role')),
-          temporary_role: parseList(getVal('birthday-gift_temporary_role'))
+          role: getVal('birthday-gift_role'),
+          temporary_role: getVal('birthday-gift_temporary_role')
         }
       };
     } else if (feature === 'counting') {
@@ -694,31 +896,32 @@
     } else if (feature === 'member_role') {
       f.member_role = {
         enabled: document.getElementById('toggle-member').checked,
-        role_id: parseList(getVal('member-role_id'))
+        role_id: getVal('member-role_id')
       };
     } else if (feature === 'message_autodelete') {
       f.message_autodelete = {
         enabled: document.getElementById('toggle-autodelete').checked,
         wait: Number(getVal('autodelete-wait')) || 0,
-        channels_id: parseList(getVal('autodelete-channels_id'))
+        channels_id: getVal('autodelete-channels_id')
       };
     }
 
     try {
       const res = await fetch(`http://localhost:5000/api/config/${guildId}`, {
-        method: 'POST',
-        credentials: 'include',
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentConfig)
       });
       if (res.status === 401) { window.location.href = 'login.html'; return; }
       if (res.status === 403) { showToast('Accès refusé', true); return; }
+      if (res.status === 404) { showToast("⚠️ Le bot n'est pas encore sur ce serveur.", true); return; }
       if (!res.ok) throw new Error();
       showToast('✓ ' + feature + ' sauvegardé !');
     } catch {
       showToast('Erreur de sauvegarde', true);
     }
   }
+
   let rewardCount = 0;
 
   function addReward(level = '', role = '') {
@@ -727,14 +930,22 @@
     const row = document.createElement('div');
     row.id = id;
     row.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;';
+
+    // Dropdown rôle
+    const roleOptions = discordRoles.map(r => {
+      const hex = r.color ? '#' + r.color.toString(16).padStart(6,'0') : null;
+      const dot = hex ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hex};margin-right:4px;"></span>` : '';
+      return `<option value="${r.id}" ${String(r.id) === String(role) ? 'selected' : ''}>${r.name}</option>`;
+    }).join('');
+
     row.innerHTML = `
       <input class="field-input" type="number" min="1" max="999" placeholder="Niveau"
-        value="${level}"
-        style="max-width:72px;text-align:center;flex:none;min-width:0;"/>
+        value="${level}" style="max-width:72px;text-align:center;flex:none;min-width:0;"/>
       <span style="color:var(--muted);font-size:0.8rem;flex-shrink:0;">→</span>
-      <input class="field-input" type="text" placeholder="Rôle ID"
-        value="${role}"
-        style="max-width:none;flex:1;text-align:left;min-width:0;"/>
+      <select class="field-select" style="max-width:none;flex:1;min-width:0;">
+        <option value="">— Rôle —</option>
+        ${roleOptions}
+      </select>
       <button type="button" onclick="removeReward('${id}')" style="
         background:none;border:none;cursor:pointer;padding:4px;
         color:var(--muted);transition:color 0.2s;flex-shrink:0;"
@@ -747,14 +958,13 @@
     document.getElementById('rewards-list').appendChild(row);
   }
 
-  function removeReward(id) {
-    document.getElementById(id)?.remove();
-  }
+  function removeReward(id) { document.getElementById(id)?.remove(); }
 
   async function logout() {
     await fetch('http://localhost:5000/api/logout', { credentials: 'include' });
     window.location.href = 'login.html';
   }
+
   loadConfig();
 </script>
 </body>

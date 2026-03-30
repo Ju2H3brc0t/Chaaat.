@@ -22,6 +22,8 @@ OAUTH2_URL    = (
     f"&scope=identify+guilds"
 )
 
+BOT_TOKEN   = "VOTRE_BOT_TOKEN_ICI"  # ← remplace par ton vrai token
+
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR  = os.path.dirname(BASE_DIR)                    
 CONFIGS_DIR = os.path.join(PARENT_DIR, "server_configs")
@@ -40,7 +42,7 @@ DEFAULT_CONFIG = {
         "leveling": {
             "announcement_channel_id": 0,
             "boost_channels": [],
-            "enabled": True,
+            "enabled": False,
             "exclude_channels": [],
             "rewards": {"0": 0},
             "rewards_stackable": False
@@ -131,6 +133,46 @@ def logout():
     session.clear()
     return jsonify({"status": "ok"})
 
+@app.route("/api/guild/<guild_id>/channels")
+def guild_channels(guild_id):
+    if "guilds" not in session:
+        return jsonify({"error": "Non connecté"}), 401
+    if guild_id not in [g["id"] for g in session["guilds"]]:
+        return jsonify({"error": "Accès refusé"}), 403
+
+    r = requests.get(f"{DISCORD_API}/guilds/{guild_id}/channels",
+        headers={"Authorization": f"Bot {BOT_TOKEN}"})
+    if not r.ok:
+        return jsonify({"error": "Impossible de récupérer les salons"}), 502
+
+    channels = [
+        {"id": c["id"], "name": c["name"], "type": c["type"]}
+        for c in r.json()
+        if c["type"] in (0, 4, 5, 15)  # text, category, announcement, forum
+    ]
+    channels.sort(key=lambda c: c["name"].lower())
+    return jsonify(channels)
+
+@app.route("/api/guild/<guild_id>/roles")
+def guild_roles(guild_id):
+    if "guilds" not in session:
+        return jsonify({"error": "Non connecté"}), 401
+    if guild_id not in [g["id"] for g in session["guilds"]]:
+        return jsonify({"error": "Accès refusé"}), 403
+
+    r = requests.get(f"{DISCORD_API}/guilds/{guild_id}/roles",
+        headers={"Authorization": f"Bot {BOT_TOKEN}"})
+    if not r.ok:
+        return jsonify({"error": "Impossible de récupérer les rôles"}), 502
+
+    roles = [
+        {"id": ro["id"], "name": ro["name"], "color": ro["color"]}
+        for ro in r.json()
+        if ro["name"] != "@everyone"
+    ]
+    roles.sort(key=lambda ro: ro["name"].lower())
+    return jsonify(roles)
+
 @app.route("/api/config/<guild_id>", methods=["GET"])
 def get_config(guild_id):
     if "guilds" not in session:
@@ -151,6 +193,9 @@ def post_config(guild_id):
     guild_ids = [g["id"] for g in session["guilds"]]
     if guild_id not in guild_ids:
         return jsonify({"error": "Accès refusé"}), 403
+
+    if not os.path.exists(get_config_path(guild_id)):
+        return jsonify({"error": "Aucune configuration existante pour ce serveur. Le bot doit d'abord rejoindre le serveur."}), 404
 
     data = request.get_json()
     if not data:
