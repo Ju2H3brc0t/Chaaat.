@@ -219,7 +219,7 @@
 <script>
   async function loadUser() {
     try {
-      const res = await fetch("http://localhost:5000/api/me", { credentials: "include" });
+      const res = await fetch("/api/me", { credentials: "include" });
       if (!res.ok) { window.location.href = "login.html"; return; }
       const user = await res.json();
 
@@ -242,7 +242,7 @@
   async function loadGuilds() {
     const grid = document.getElementById("grid");
     try {
-      const res = await fetch("http://localhost:5000/api/guilds", { credentials: "include" });
+      const res = await fetch("/api/guilds", { credentials: "include" });
       if (!res.ok) { window.location.href = "login.html"; return; }
       const guilds = await res.json();
 
@@ -255,7 +255,7 @@
       guilds.forEach((g, i) => {
         const card = document.createElement("a");
         card.className = "server-card";
-        card.href = `http://localhost:5000/home.html?guild_id=${g.id}`;
+        card.href = `/home.html?guild_id=${g.id}`;
         card.style.animationDelay = `${i * 0.05}s`;
         
         const iconHtml = g.icon
@@ -278,7 +278,7 @@
   }
 
   async function logout() {
-    await fetch("http://localhost:5000/api/logout", { credentials: "include" });
+    await fetch("/api/logout", { credentials: "include" });
     window.location.href = "login.html";
   }
 

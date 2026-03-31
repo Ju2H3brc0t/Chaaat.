@@ -4,14 +4,23 @@ import requests
 import os
 import yaml
 
+def get_my_public_ip():
+    try:
+        return requests.get('https://api.ipify.org').text
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'IP : {e}")
+        return "127.0.0.1"
+
+PUBLIC_IP = get_my_public_ip()
+
 app = Flask(__name__, static_folder='.')
-CORS(app, supports_credentials=True, origins=["http://localhost:5000"])
+CORS(app, supports_credentials=True, origins=[f"http://{PUBLIC_IP}:5000"])
 
 app.secret_key = os.getenv("APP_SECRET_KEY")
 
 CLIENT_ID     = os.getenv("DISCORD_CLIENT_ID")
 CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
-REDIRECT_URI  = "http://localhost:5000/callback"
+REDIRECT_URI  = f"http://{PUBLIC_IP}:5000/callback"
 
 DISCORD_API   = "https://discord.com/api/v10"
 OAUTH2_URL    = (
@@ -114,7 +123,7 @@ def callback():
     session["user"]   = {"id": user["id"], "username": user["username"], "avatar": user.get("avatar")}
     session["guilds"] = admin_guilds
 
-    return redirect("http://localhost:5000/servers.html")
+    return redirect("/servers.html")
 
 @app.route("/api/me")
 def me():
@@ -204,5 +213,5 @@ def post_config(guild_id):
     return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
-    print("✅ Serveur Flask démarré sur http://localhost:5000")
-    app.run(port=5000, debug=True)
+    print(f"✅ Serveur Flask démarré sur http://{PUBLIC_IP}:5000")
+    app.run(host="0.0.0.0", port=5000)

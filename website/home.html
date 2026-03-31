@@ -167,7 +167,6 @@
     .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background: #fff; }
     .field-input::placeholder { color: #b0c2d8; }
 
-    /* ── Dropdown select simple ── */
     .field-select {
       flex: 1; min-width: 0; max-width: 200px;
       padding: 8px 28px 8px 10px;
@@ -179,7 +178,6 @@
     }
     .field-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
 
-    /* ── Multi-select custom ── */
     .multiselect-wrap { flex: 1; min-width: 120px; max-width: 200px; position: relative; }
     .multiselect-box {
       min-height: 36px; padding: 4px 28px 4px 8px;
@@ -564,11 +562,9 @@
 
   document.getElementById('server-name').textContent = 'Serveur #' + guildId;
 
-  // ── Données Discord chargées ──────────────────────────────
   let discordChannels = [];
   let discordRoles    = [];
 
-  // ── Multi-select ──────────────────────────────────────────
   function buildMultiSelect(wrapId, items, selectedIds = [], colorFn = null) {
     const wrap = document.getElementById(wrapId);
     if (!wrap) return;
@@ -600,7 +596,6 @@
           box.appendChild(tag);
         });
       }
-      // arrow spacer
       const sp = document.createElement('span');
       sp.style.cssText = 'flex:1;min-width:0;';
       box.appendChild(sp);
@@ -620,7 +615,6 @@
           renderTags(); renderOptions();
         });
 
-        // Couleur du rôle si dispo
         let label = item.name;
         if (colorFn) {
           const hex = colorFn(item);
@@ -637,7 +631,6 @@
 
     box.addEventListener('click', e => {
       const isOpen = dropdown.classList.contains('open');
-      // ferme tous les autres
       document.querySelectorAll('.multiselect-dropdown.open').forEach(d => {
         d.classList.remove('open');
         d.previousSibling?.classList?.remove('open');
@@ -657,7 +650,6 @@
     wrap.appendChild(box);
     wrap.appendChild(dropdown);
 
-    // API pour lire/écrire
     wrap._getSelected = () => selected.map(Number);
     wrap._setSelected = (ids) => {
       selected = (ids || []).map(String);
@@ -671,7 +663,6 @@
   }
 
   function populateSelects(channels, roles) {
-    // Sélects simples — salons
     const channelSelects = [
       'leveling-announcement_channel_id',
       'birthday-announcement_channel_id',
@@ -694,18 +685,15 @@
       sel.value = cur || '0';
     });
 
-    // Multi-selects salons
     buildMultiSelect('ms-leveling-boost_channels',    channels);
     buildMultiSelect('ms-leveling-exclude_channels',  channels);
     buildMultiSelect('ms-autodelete-channels_id',     channels);
 
-    // Multi-selects rôles
     buildMultiSelect('ms-birthday-gift_role',           roles, [], roleColor);
     buildMultiSelect('ms-birthday-gift_temporary_role', roles, [], roleColor);
     buildMultiSelect('ms-member-role_id',               roles, [], roleColor);
   }
 
-  // ── Helpers ───────────────────────────────────────────────
   function setVal(id, val) {
     const el = document.getElementById(id);
     const ms = document.getElementById('ms-' + id);
@@ -752,7 +740,6 @@
 
   async function loadConfig() {
     try {
-      // Charger salons, rôles et config en parallèle
       const [chRes, roRes, cfRes] = await Promise.all([
         fetch(`http://localhost:5000/api/guild/${guildId}/channels`, { credentials: 'include' }),
         fetch(`http://localhost:5000/api/guild/${guildId}/roles`,    { credentials: 'include' }),
@@ -931,7 +918,6 @@
     row.id = id;
     row.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;';
 
-    // Dropdown rôle
     const roleOptions = discordRoles.map(r => {
       const hex = r.color ? '#' + r.color.toString(16).padStart(6,'0') : null;
       const dot = hex ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hex};margin-right:4px;"></span>` : '';
@@ -961,7 +947,7 @@
   function removeReward(id) { document.getElementById(id)?.remove(); }
 
   async function logout() {
-    await fetch('http://localhost:5000/api/logout', { credentials: 'include' });
+    await fetch('/api/logout', { credentials: 'include' });
     window.location.href = 'login.html';
   }
 
