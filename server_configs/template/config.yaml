@@ -19,6 +19,8 @@ features:
     enabled: false
   language: en # The language used by the bot
   leveling:
+    voice_xp_enabled: true
+    voice_xp_interval_seconds: 10
     announcement_channel_id: 0 # Where should the bot announce new levels
     boost_channels: [] # 1 message = 2xp for channels in the list
     enabled: true # 1 message = 1xp
