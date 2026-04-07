@@ -33,6 +33,17 @@ class Mod(commands.Cog):
 
     staff_group = app_commands.Group(name="staff", description="Commands for moderators")
 
+    @staff_group.command(name="clear", description="Clear a certain amount of messages in the channel")
+    @app_commands.describe(amount="The amount of messages you want to delete")
+    @app_commands.checks.has_permissions(manage_messages=True)
+    async def clear(self, interaction: discord.Interaction, amount: int):
+        config = await load_config(guild_id=interaction.guild_id, auto_create=True)
+        language = str(config['features'].get('language'))
+
+        await interaction.channel.purge(limit=amount)
+        clear_message = await translate(text="messages have been deleted", dest_lng=language)
+        await interaction.response.send_message(f"🧹 {amount} {clear_message}", ephemeral=True)
+
     @staff_group.command(name="warn", description="Warn a member")
     @app_commands.describe(member="The member you want to warn", reason="The reason why the member is warned")
     @app_commands.checks.has_permissions(moderate_members=True)
