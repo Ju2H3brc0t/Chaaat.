@@ -64,7 +64,7 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
-        until = discord.utils.utcnow() + self.parse_duration(duration_str=duration)
+        until = discord.utils.utcnow() + await self.parse_duration(duration_str=duration)
         timestamp = discord.utils.format_dt(until, style='R')
         
         dm_message_first_part = await translate(text="You have been timed out from", dest_lng=language)
