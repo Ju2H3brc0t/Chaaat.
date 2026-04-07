@@ -82,7 +82,7 @@ class Mod(commands.Cog):
         timeout_message_first_part = await translate(text="has been timed out for", dest_lng=language)
         timeout_message_second_part = await translate(text="minutes. Reason :", dest_lng=language)
         
-        await interaction.response.send_message(f"✅ {member.mention} {timeout_message_first_part} {self.parse_duration(duration_str=duration)} {timeout_message_second_part} {reason}")
+        await interaction.response.send_message(f"✅ {member.mention} {timeout_message_first_part} {await self.parse_duration(duration_str=duration)} {timeout_message_second_part} {reason}")
     
     @staff_group.command(name="kick", description="Exclude a user from the server")
     @app_commands.describe(member="The member you want to exclude", reason="The reason why the member is excluded from the server")
