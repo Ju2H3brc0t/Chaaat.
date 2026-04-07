@@ -31,14 +31,14 @@ class Mod(commands.Cog):
 
         return datetime.timedelta(seconds=total_seconds)
 
-    staff_group = app_commands.Group(name="mod", description="Commands for moderators")
+    staff_group = app_commands.Group(name="staff", description="Commands for moderators")
 
     @staff_group.command(name="warn", description="Warn a member")
     @app_commands.describe(member="The member you want to warn", reason="The reason why the member is warned")
     @app_commands.checks.has_permissions(moderate_members=True)
     async def warn(self, interaction: discord.Interaction, member: discord.Member, reason: str):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['feature'].get('language'))
+        language = str(config['features'].get('language'))
 
         dm_message_first_part = await translate(text="You have been warned in", dest_lng=language)
         dm_message_second_part = await translate(text="Reason :", dest_lng=language)
