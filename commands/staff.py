@@ -60,7 +60,7 @@ class Mod(commands.Cog):
     @staff_group.command(name="timeout", description="Temporarily prevents a member from messaging")
     @app_commands.describe(member="The member you want to timeout", duration="How long will the timeout be, in minutes", reason="The reason why the member is timed out from the server")
     @app_commands.checks.has_permissions(moderate_members=True)
-    async def timeout(self, interaction: discord.Interaction, member: discord.Member, duration: int, reason: str):
+    async def timeout(self, interaction: discord.Interaction, member: discord.Member, duration: str, reason: str):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
