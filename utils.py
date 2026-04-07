@@ -65,20 +65,46 @@ DEFAULT_JSON = {
 }
 
 async def init_db():
+    required_columns = {
+        "warn": "INTEGER DEFAULT 0",
+        "xp": "INTEGER DEFAULT 0",
+        "level": "INTEGER DEFAULT 0",
+        "birthday": "TEXT",
+        "previous_temporary_gift": "INTEGER",
+    }
+
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS user_data (
                 user_id INTEGER,
                 guild_id INTEGER,
-                xp INTEGER DEFAULT 0,
-                level INTEGER DEFAULT 1,
-                birthday TEXT,
-                previous_temporary_gift INTEGER,
                 PRIMARY KEY (user_id, guild_id)
             )
         ''')
+    
+        async with db.execute("PRAGMA table_info(user_data)") as cursor:
+            existing_columns = [row[1] for row in await cursor.fetchall()]
 
-        await db.commit()
+        for column_name, column_type in required_columns.items():
+            if column_name not in existing_columns:
+                try:
+                    await db.execute(f"ALTER TABLE user_data ADD COLUMN {column_name} {column_type}")
+                except Exception as e:
+                    print(f"⚠️ Failed to load database: {e}")
+                    return
+
+            await db.commit()
+    
+        protected_columns = ["user_id", "guild_id"]
+        for column in existing_columns:
+            if column not in required_columns and column not in protected_columns:
+                try:
+                    await db.execute(f"ALTER TABLE user_data DROP COLUMN {column}")
+                except Exception as e:
+                    print(f"⚠️ Failed to load database: {e}")
+                    return
+    
+        print("📦 Database charged successfully")
 
 async def add_users_to_db(user_id: int, guild_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
