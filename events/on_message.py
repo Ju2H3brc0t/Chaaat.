@@ -115,9 +115,6 @@ class OnMessage(commands.Cog):
                     json.dump(data, f, indent=4)
 
     async def query_ai(self, message, prompt):
-        config = await load_config(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
-
         history = []
         async for msg in message.channel.history(limit=50, before=message):
             history.append({
@@ -147,7 +144,7 @@ class OnMessage(commands.Cog):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        if self.client.user.mentioned_in(message):
+        if self.client.user.mentioned_in(message) and not message.author.bot:
             user_prompt = message.content.replace(f'<@!{self.client.user.id}>', '').replace(f'<@{self.client.user.id}>', '').strip()
 
             if user_prompt:
