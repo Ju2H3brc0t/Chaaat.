@@ -67,6 +67,8 @@ DEFAULT_JSON = {
 async def init_db():
     required_columns = {
         "warn": "INTEGER DEFAULT 0",
+        "timeout_count": "INTEGER DEFAULT 0",
+        "note": "TEXT",
         "xp": "INTEGER DEFAULT 0",
         "level": "INTEGER DEFAULT 0",
         "birthday": "TEXT",

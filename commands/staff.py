@@ -41,8 +41,45 @@ class Mod(commands.Cog):
         language = str(config['features'].get('language'))
 
         await interaction.channel.purge(limit=amount)
-        clear_message = await translate(text="messages have been deleted", dest_lng=language)
+        clear_message = await translate(text="messages have been deleted", dest_lng=language) # Need to be added to locale
         await interaction.response.send_message(f"🧹 {amount} {clear_message}", ephemeral=True)
+
+    @staff_group.command(name="profile", description="Display the profile of a member")
+    @app_commands.describe(member="The member whose profile you want to display")
+    @app_commands.checks.has_permissions(moderate_members=True)
+    async def profile(self, interaction: discord.Interaction, member: discord.Member):
+        config = await load_config(guild_id=interaction.guild_id, auto_create=True)
+        language = str(config['features'].get('language'))
+        warn_value = await get_user_from_db(data_to_get="warn", user_id=member.id, guild_id=interaction.guild_id)
+        timeout_value = await get_user_from_db(data_to_get="timeout_count", user_id=member.id, guild_id=interaction.guild_id)
+        note_value = await get_user_from_db(data_to_get="note", user_id=member.id, guild_id=interaction.guild_id)
+
+        embed = discord.Embed(title="Profile", colour=discord.Colour.blurple)
+        embed.set_thumbnail(url=member.display_avatar.url)
+
+        embed.add_field(name=await translate(text="Username", dest_lng=language), value=member.name, inline=True)
+        embed.add_field(name=await translate(text="Display Name", dest_lng=language), value=member.display_name, inline=True) 
+        embed.add_field(name=await translate(text="Nickname", dest_lng=language), value=member.nick if member.nick else "None", inline=True) 
+        embed.add_field(name=await translate(text="Date of account creation", dest_lng=language), value=member.created_at.strftime("%d/%m/%Y %H:%M"), inline=True) 
+        embed.add_field(name=await translate(text="Date of joining the server", dest_lng=language), value=member.joined_at.strftime("%d/%m/%Y %H:%M"), inline=True) 
+        embed.add_field(name="\u200b", value="\u200b") 
+        embed.add_field(name=await translate(text="Sanctions on the server", dest_lng=language), value=f"`{warn_value} warn(s) | {timeout_value} timeout(s)`", inline=True) 
+        embed.add_field(name="\u200b", value="\u200b") 
+        embed.add_field(name=await translate(text="Note of the moderators", dest_lng=language), value=f"*{note_value}*", inline=True) 
+
+        await interaction.response.send_message(embed=embed)
+
+    @staff_group.command(name="note", description="Add or edit a note on a member's profile")
+    @app_commands.describe(member="The member whose note you want to add or edit", note="The note you want to add or edit")
+    @app_commands.checks.has_permissions(moderate_members=True)
+    async def note(self, interaction: discord.Interaction, member: discord.Member, note: str):
+        config = await load_config(guild_id=interaction.guild_id, auto_create=True)
+        language = str(config['features'].get('language'))
+
+        response_message = await translate(text="✅ Note added for", dest_lng=language)
+
+        await update_db(column="note", value=note, user_id=member.id, guild_id=interaction.guild_id)
+        await interaction.response.send_message(f"{response_message} {member.mention}", ephemeral=True)
 
     @staff_group.command(name="warn", description="Warn a member")
     @app_commands.describe(member="The member you want to warn", reason="The reason why the member is warned")
@@ -59,7 +96,6 @@ class Mod(commands.Cog):
             await member.send(dm_message)
         except discord.Forbidden:
             pass
-        
         
         value = await get_user_from_db(data_to_get="warn", user_id=member.id, guild_id=interaction.guild_id)
         await update_db(column="warn", value=value+1, user_id=member.id, guild_id=interaction.guild_id)
@@ -87,6 +123,9 @@ class Mod(commands.Cog):
             await member.send(dm_message)
         except discord.Forbidden:
             pass
+        
+        value = await get_user_from_db(data_to_get="timeout_count", user_id=member.id, guild_id=interaction.guild_id)
+        await update_db(column="timeout_count", value=value+1, user_id=member.id, guild_id=interaction.guild_id)
 
         await member.timeout(until, reason=reason)
         
