@@ -88,21 +88,25 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        dm_message_first_part = await translate(text="You have been warned in", dest_lng=language)
-        dm_message_second_part = await translate(text="Reason :", dest_lng=language)
-        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**.\n{dm_message_second_part} {reason}'
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_message_first_part = await translate(text="You have been warned in the server", dest_lng=language)
+        embed_message_second_part = await translate(text="Reason :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{embed_message_first_part} **{interaction.guild.name}**\n{embed_message_second_part} {reason}", color=discord.Color.orange())
 
         try:
-            await member.send(dm_message)
+            await member.send(embed=embed)
         except discord.Forbidden:
             pass
         
         value = await get_user_from_db(data_to_get="warn", user_id=member.id, guild_id=interaction.guild_id)
         await update_db(column="warn", value=value+1, user_id=member.id, guild_id=interaction.guild_id)
 
-        timeout_message = await translate(text="has been warned for", dest_lng=language)
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_message_first_part = await translate(text="has been warned in the server", dest_lng=language)
+        embed_message_second_part = await translate(text="Reason :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_message_first_part}\n{embed_message_second_part} {reason}", color=discord.Color.orange())
 
-        await interaction.response.send_message(f"✅ {member.mention} {timeout_message} \"{reason}\"")
+        await interaction.response.send_message(embed=embed)
 
     @staff_group.command(name="timeout", description="Temporarily prevents a member from messaging")
     @app_commands.describe(member="The member you want to timeout", duration="How long will the timeout be, in minutes", reason="The reason why the member is timed out from the server")
@@ -114,13 +118,14 @@ class Mod(commands.Cog):
         until = discord.utils.utcnow() + await self.parse_duration(duration_str=duration)
         timestamp = discord.utils.format_dt(until, style='R')
         
-        dm_message_first_part = await translate(text="You have been timed out from", dest_lng=language)
-        dm_message_second_part = await translate(text="Reason :", dest_lng=language)
-        dm_message_third_part = await translate(text="End of the sanction :", dest_lng=language)
-        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**.\n{dm_message_second_part} {reason}\n{dm_message_third_part} {timestamp}'
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_first_part = await translate(text="You have been timed out from the server", dest_lng=language)
+        embed_second_part = await translate(text="Reason :", dest_lng=language)
+        embed_third_part = await translate(text="End of the sanction :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{embed_first_part} **{interaction.guild.name}**\n{embed_second_part} {reason}\n{embed_third_part} {timestamp}", color=discord.Color.orange())
 
         try:
-            await member.send(dm_message)
+            await member.send(embed=embed)
         except discord.Forbidden:
             pass
         
@@ -129,10 +134,13 @@ class Mod(commands.Cog):
 
         await member.timeout(until, reason=reason)
         
-        timeout_message_first_part = await translate(text="has been timed out for", dest_lng=language)
-        timeout_message_second_part = await translate(text="minutes. Reason :", dest_lng=language)
-        
-        await interaction.response.send_message(f"✅ {member.mention} {timeout_message_first_part} {await self.parse_duration(duration_str=duration)} {timeout_message_second_part} {reason}")
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_first_part = await translate(text="has been timed out from the server", dest_lng=language)
+        embed_second_part = await translate(text="Reason :", dest_lng=language)
+        embed_third_part = await translate(text="End of the sanction :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason} | {embed_third_part} {timestamp}", color=discord.Color.orange())
+
+        await interaction.response.send_message(embed=embed)
     
     @staff_group.command(name="kick", description="Exclude a user from the server")
     @app_commands.describe(member="The member you want to exclude", reason="The reason why the member is excluded from the server")
@@ -141,19 +149,24 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
-        dm_message_first_part = await translate(text="You have been excluded from", dest_lng=language)
-        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**'
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_first_part = await translate(text="You have been kicked from the server", dest_lng=language)
+        embed_second_part = await translate(text="Reason :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{embed_first_part} **{interaction.guild.name}**\n{embed_second_part} {reason}", color=discord.Color.orange())
 
         try:
-            await member.send(dm_message)
+            await member.send(embed=embed)
         except discord.Forbidden:
             pass
 
         await member.kick(reason=reason)
         
-        kick_message = await translate(text="has been excluded. Reason :", dest_lng=language)
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_first_part = await translate(text="has been kicked from the server", dest_lng=language)
+        embed_second_part = await translate(text="Reason :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason}", color=discord.Color.orange())
         
-        await interaction.response.send_message(f"👢 {member.mention} {kick_message} {reason}")
+        await interaction.response.send_message(embed=embed)
     
     @staff_group.command(name="ban", description="Ban a user from the server")
     @app_commands.describe(member="The member you want to ban", reason="The reason why the member is banned from the server")
@@ -162,17 +175,24 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
-        dm_message_first_part = await translate(text="You have been defently banned from", dest_lng=language)
-        dm_message = f'🚫 {dm_message_first_part} **{interaction.guild.name}**'
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_first_part = await translate(text="You have been banned from the server", dest_lng=language)
+        embed_second_part = await translate(text="Reason :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{embed_first_part} **{interaction.guild.name}**\n{embed_second_part} {reason}", color=discord.Color.orange())
 
         try:
-            await member.send(dm_message)
+            await member.send(embed=embed)
         except discord.Forbidden:
             pass
 
         await member.ban(reason=reason)
-        ban_message = await translate(text="has been defently banned. Reason :", dest_lng=language)
-        await interaction.response.send_message(f"🔨 {member.mention} {ban_message} {reason}")
+
+        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_first_part = await translate(text="has been banned from the server", dest_lng=language)
+        embed_second_part = await translate(text="Reason :", dest_lng=language)
+        embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason}", color=discord.Color.orange())
+        
+        await interaction.response.send_message(embed=embed)
 
 async def setup(client):
     await client.add_cog(Mod(client))
