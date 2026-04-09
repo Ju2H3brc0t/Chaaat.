@@ -32,9 +32,8 @@ async def on_ready():
     if not initial_extensions:
         try:
             await init_db()
-            print(f'📦 Database charged successfully')
         except Exception as e:
-            print(f'⚠️ Failed to load database: {e}')
+            print(f"⚠️ Failed to load database: {e}")
             traceback.print_exc()
         
         for folder in folders:
