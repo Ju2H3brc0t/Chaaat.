@@ -15,6 +15,7 @@ class OnMessage(commands.Cog):
         self.api_url = f"https://api.groq.com/openai/v1/chat/completions"
         self.headers = {"Authorization": f"Bearer {os.getenv('GROQ_TOKEN')}", "Content-Type": "application/json"}
         self.evaluator = None
+        self.counting_lock = asyncio.Lock()
     
     async def cog_load(self):
         self.evaluator = SimpleEval()
@@ -237,19 +238,6 @@ class OnMessage(commands.Cog):
                     await channel.send(embed=embed)
 
     async def counting(self, message):
-        config = await load_config(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
-        data = await load_data(guild_id=message.guild.id, auto_create=True)
-        data_path = f'server_configs/{message.guild.id}/data.json'
-
-        counting_enabled = bool(config['features']['counting'].get('enabled'))
-        channel_id = int(config['features']['counting'].get('channel_id'))
-        checkpoints = bool(config['features']['counting'].get('checkpoints'))
-        raw_count = data.get('counting', None)
-        current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
-        raw_user = data.get('last_user_id')
-        last_user_id = int(raw_user) if raw_user is not None else None
-
         s = SimpleEval()
         s.names = {
             "pi": Decimal("3.14159265358979323846"),
@@ -271,73 +259,87 @@ class OnMessage(commands.Cog):
         }
 
         if counting_enabled and channel_id == message.channel.id and not message.author.bot:
-            if current_count == None:
-                unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
-                await message.channel.send(unexpected_error_message)
-                return 
+            async with self.counting_lock:
+                config = await load_config(guild_id=message.guild.id, auto_create=True)
+                language = str(config['features'].get('language'))
+                data = await load_data(guild_id=message.guild.id, auto_create=True)
+                data_path = f'server_configs/{message.guild.id}/data.json'
 
-            try:
-                clean_content = message.content.strip().replace(",", ".").replace("`", "")
-                result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
-                count = Decimal(str(result))
+                counting_enabled = bool(config['features']['counting'].get('enabled'))
+                channel_id = int(config['features']['counting'].get('channel_id'))
+                checkpoints = bool(config['features']['counting'].get('checkpoints'))
+                raw_count = data.get('counting', None)
+                current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
+                raw_user = data.get('last_user_id')
+                last_user_id = int(raw_user) if raw_user is not None else None
 
-            except asyncio.TimeoutError:
-                timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
-                await message.channel.send(timeout_message)
-                return
-            except (ValueError, NameError, SyntaxError):
-                return
+                if current_count == None:
+                    unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
+                    await message.channel.send(unexpected_error_message)
+                    return 
+
+                try:
+                    clean_content = message.content.strip().replace(",", ".").replace("`", "")
+                    result = await asyncio.wait_for(asyncio.to_thread(s.eval, clean_content), timeout=0.5)
+                    count = Decimal(str(result))
+
+                except asyncio.TimeoutError:
+                    timeout_message = await translate(text="🥀 This calculation is too complex.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
+                    await message.channel.send(timeout_message)
+                    return
+                except (ValueError, NameError, SyntaxError):
+                    return
             
-            if current_count % 100 == 0:
-                is_checkpoint = True
-            else:
-                is_checkpoint = False
+                if current_count % 100 == 0:
+                    is_checkpoint = True
+                else:
+                    is_checkpoint = False
 
-            if (current_count + 1) % 100 == 0:
-                will_be_checkpoint = True
-            else:
-                will_be_checkpoint = False
+                if (current_count + 1) % 100 == 0:
+                    will_be_checkpoint = True
+                else:
+                    will_be_checkpoint = False
 
-            previous_checkpoint = current_count - (current_count % 100)
+                previous_checkpoint = current_count - (current_count % 100)
 
-            is_valid = current_count < count <= current_count+1
+                is_valid = current_count < count <= current_count+1
 
-            if is_valid and message.author.id != last_user_id:
-                await message.add_reaction("✅")
-                if count == 100: await message.add_reaction("💯")
-                if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
-                data['counting'] = str(count)
-                data['last_user_id'] = message.author.id
-                with open(data_path, 'w') as f:
-                    json.dump(data, f, indent=4)
-            elif not is_valid or message.author.id == last_user_id:
-                await message.add_reaction("❌")
-                if checkpoints:
-                    if is_checkpoint:
-                        wrong_but_is_checkpoint = await translate(text="made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
-                        await message.channel.send(f"{message.author.mention} {wrong_but_is_checkpoint}")
+                if is_valid and message.author.id != last_user_id:
+                    await message.add_reaction("✅")
+                    if count == 100: await message.add_reaction("💯")
+                    if checkpoints and will_be_checkpoint: await message.add_reaction("🚩")
+                    data['counting'] = str(count)
+                    data['last_user_id'] = message.author.id
+                    with open(data_path, 'w') as f:
+                        json.dump(data, f, indent=4)
+                elif not is_valid or message.author.id == last_user_id:
+                    await message.add_reaction("❌")
+                    if checkpoints:
+                        if is_checkpoint:
+                            wrong_but_is_checkpoint = await translate(text="made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
+                            await message.channel.send(f"{message.author.mention} {wrong_but_is_checkpoint}")
+                            data['counting'] = str(previous_checkpoint)
+                            data['last_user_id'] = None
+                            with open(data_path, 'w') as f:
+                                json.dump(data, f, indent=4)
+                            return
+                        wrong_but_checkpoint = await translate(text="made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.", dest_lng=language, previous_checkpoint=previous_checkpoint+1)
+                        await message.channel.send(f"{message.author.mention} {wrong_but_checkpoint}")
                         data['counting'] = str(previous_checkpoint)
                         data['last_user_id'] = None
                         with open(data_path, 'w') as f:
                             json.dump(data, f, indent=4)
-                        return
-                    wrong_but_checkpoint = await translate(text="made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.", dest_lng=language, previous_checkpoint=previous_checkpoint+1)
-                    await message.channel.send(f"{message.author.mention} {wrong_but_checkpoint}")
-                    data['counting'] = str(previous_checkpoint)
-                    data['last_user_id'] = None
-                    with open(data_path, 'w') as f:
-                        json.dump(data, f, indent=4)
+                    else:
+                        wrong_message = await translate(text=f"made a mistake, the counter has been reset.\n-# Next number is 1.", dest_lng=language)
+                        await message.channel.send(f"{message.author.mention} {wrong_message}")
+                        data['counting'] = str(0)
+                        data['last_user_id'] = None
+                        with open(data_path, 'w') as f:
+                            json.dump(data, f, indent=4)
                 else:
-                    wrong_message = await translate(text=f"made a mistake, the counter has been reset.\n-# Next number is 1.", dest_lng=language)
-                    await message.channel.send(f"{message.author.mention} {wrong_message}")
-                    data['counting'] = str(0)
-                    data['last_user_id'] = None
-                    with open(data_path, 'w') as f:
-                        json.dump(data, f, indent=4)
-            else:
-                await message.add_reaction("❓")
-                unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
-                await message.channel.send(unexpected_error_message)
+                    await message.add_reaction("❓")
+                    unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
+                    await message.channel.send(unexpected_error_message)
     
     @commands.Cog.listener()
     async def on_message(self, message):
