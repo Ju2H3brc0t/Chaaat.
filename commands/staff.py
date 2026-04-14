@@ -40,9 +40,9 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        await interaction.channel.purge(limit=amount)
-        clear_message = await translate(text="messages have been deleted", dest_lng=language) # Need to be added to locale
+        clear_message = await translate(text="messages have been deleted", dest_lng=language)
         await interaction.response.send_message(f"🧹 {amount} {clear_message}", ephemeral=True)
+        await interaction.channel.purge(limit=amount)
 
     @staff_group.command(name="profile", description="Display the profile of a member")
     @app_commands.describe(member="The member whose profile you want to display")
@@ -54,7 +54,7 @@ class Mod(commands.Cog):
         timeout_value = await get_user_from_db(data_to_get="timeout_count", user_id=member.id, guild_id=interaction.guild_id)
         note_value = await get_user_from_db(data_to_get="note", user_id=member.id, guild_id=interaction.guild_id)
 
-        embed = discord.Embed(title="Profile", colour=discord.Colour.blurple)
+        embed = discord.Embed(title="Profile", color=discord.Color.blurple())
         embed.set_thumbnail(url=member.display_avatar.url)
 
         embed.add_field(name=await translate(text="Username", dest_lng=language), value=member.name, inline=True)
@@ -64,8 +64,9 @@ class Mod(commands.Cog):
         embed.add_field(name=await translate(text="Date of joining the server", dest_lng=language), value=member.joined_at.strftime("%d/%m/%Y %H:%M"), inline=True) 
         embed.add_field(name="\u200b", value="\u200b") 
         embed.add_field(name=await translate(text="Sanctions on the server", dest_lng=language), value=f"`{warn_value} warn(s) | {timeout_value} timeout(s)`", inline=True) 
-        embed.add_field(name="\u200b", value="\u200b") 
-        embed.add_field(name=await translate(text="Note of the moderators", dest_lng=language), value=f"*{note_value}*", inline=True) 
+        embed.add_field(name="\u200b", value="\u200b")
+        embed.add_field(name="\u200b", value="\u200b")
+        embed.add_field(name=await translate(text="Note of the moderators", dest_lng=language), value=f"*{note_value}*", inline=True)
 
         await interaction.response.send_message(embed=embed)
 
@@ -88,7 +89,7 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
 
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_message_first_part = await translate(text="You have been warned in the server", dest_lng=language)
         embed_message_second_part = await translate(text="Reason :", dest_lng=language)
         embed = discord.Embed(title=embed_title, description=f"{embed_message_first_part} **{interaction.guild.name}**\n{embed_message_second_part} {reason}", color=discord.Color.orange())
@@ -101,7 +102,7 @@ class Mod(commands.Cog):
         value = await get_user_from_db(data_to_get="warn", user_id=member.id, guild_id=interaction.guild_id)
         await update_db(column="warn", value=value+1, user_id=member.id, guild_id=interaction.guild_id)
 
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_message_first_part = await translate(text="has been warned in the server", dest_lng=language)
         embed_message_second_part = await translate(text="Reason :", dest_lng=language)
         embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_message_first_part}\n{embed_message_second_part} {reason}", color=discord.Color.orange())
@@ -118,7 +119,7 @@ class Mod(commands.Cog):
         until = discord.utils.utcnow() + await self.parse_duration(duration_str=duration)
         timestamp = discord.utils.format_dt(until, style='R')
         
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_first_part = await translate(text="You have been timed out from the server", dest_lng=language)
         embed_second_part = await translate(text="Reason :", dest_lng=language)
         embed_third_part = await translate(text="End of the sanction :", dest_lng=language)
@@ -134,11 +135,11 @@ class Mod(commands.Cog):
 
         await member.timeout(until, reason=reason)
         
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_first_part = await translate(text="has been timed out from the server", dest_lng=language)
         embed_second_part = await translate(text="Reason :", dest_lng=language)
         embed_third_part = await translate(text="End of the sanction :", dest_lng=language)
-        embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason} | {embed_third_part} {timestamp}", color=discord.Color.orange())
+        embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason} **|** {embed_third_part} {timestamp}", color=discord.Color.orange())
 
         await interaction.response.send_message(embed=embed)
     
@@ -149,7 +150,7 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_first_part = await translate(text="You have been kicked from the server", dest_lng=language)
         embed_second_part = await translate(text="Reason :", dest_lng=language)
         embed = discord.Embed(title=embed_title, description=f"{embed_first_part} **{interaction.guild.name}**\n{embed_second_part} {reason}", color=discord.Color.orange())
@@ -161,7 +162,7 @@ class Mod(commands.Cog):
 
         await member.kick(reason=reason)
         
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_first_part = await translate(text="has been kicked from the server", dest_lng=language)
         embed_second_part = await translate(text="Reason :", dest_lng=language)
         embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason}", color=discord.Color.orange())
@@ -175,7 +176,7 @@ class Mod(commands.Cog):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
         language = str(config['features'].get('language'))
         
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_first_part = await translate(text="You have been banned from the server", dest_lng=language)
         embed_second_part = await translate(text="Reason :", dest_lng=language)
         embed = discord.Embed(title=embed_title, description=f"{embed_first_part} **{interaction.guild.name}**\n{embed_second_part} {reason}", color=discord.Color.orange())
@@ -187,7 +188,7 @@ class Mod(commands.Cog):
 
         await member.ban(reason=reason)
 
-        embed_title = await translate(text="Sanction", dest_lng=language)
+        embed_title = await translate(text="📛 Sanction", dest_lng=language)
         embed_first_part = await translate(text="has been banned from the server", dest_lng=language)
         embed_second_part = await translate(text="Reason :", dest_lng=language)
         embed = discord.Embed(title=embed_title, description=f"{member.mention} {embed_first_part}\n{embed_second_part} {reason}", color=discord.Color.orange())
