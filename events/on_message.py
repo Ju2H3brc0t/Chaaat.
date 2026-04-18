@@ -115,6 +115,16 @@ class OnMessage(commands.Cog):
                 with open(data_path, 'w') as f:
                     json.dump(data, f, indent=4)
 
+    async def feur(self, message): # Please don't mind about this function, it's just for fun
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+        feur_enabled = bool(config['features']['feur'].get('enabled')) # You will have to add this manually in the config, I dont want to add it for everyone because some peoples won't understand a I want to have clean configs files
+
+        if feur_enabled:
+            if language == "fr" and not message.author.bot: # It's a joke that only work in French
+                if message.content.lower().replace(" ", "").replace("?", "") == "quoi":
+                    await message.channel.send("Feur !")
+
     async def query_ai(self, message, prompt):
         history = []
         async for msg in message.channel.history(limit=50, before=message):
