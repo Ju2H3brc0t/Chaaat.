@@ -2,6 +2,7 @@
 
 */__pycache__/
 /__pycache__/
+.venv/
 
 server_configs/*
 !server_configs/template
