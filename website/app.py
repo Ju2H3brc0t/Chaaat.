@@ -1,8 +1,11 @@
 from flask import Flask, redirect, request, session, jsonify, send_from_directory
 from flask_cors import CORS
+from dotenv import load_dotenv
 import requests
 import os
 import yaml
+
+load_dotenv()
 
 def get_my_public_ip():
     try:

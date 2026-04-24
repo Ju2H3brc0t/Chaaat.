@@ -269,7 +269,7 @@
 
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
-  <div class="loading-text">Chargement de la configuration...</div>
+  <div class="loading-text">Loading configuration...</div>
 </div>
 
 <header>
@@ -285,13 +285,13 @@
   </div>
   <button class="logout-btn" onclick="logout()">
     <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    Déconnexion
+    Logout
   </button>
 </header>
 
 <main>
-  <h1 class="page-title">Tableau de bord, <em>Chaaat.</em></h1>
-  <p class="page-sub">Les modifications correspondent directement aux clés de votre <code style="font-size:0.8rem;background:var(--accent-soft);padding:2px 6px;border-radius:4px;color:var(--accent)">config.yaml</code>.</p>
+  <h1 class="page-title">Dashboard, <em>Chaaat.</em></h1>
+  <p class="page-sub">Changes apply directly to your <code style="font-size:0.8rem;background:var(--accent-soft);padding:2px 6px;border-radius:4px;color:var(--accent)">config.yaml</code>.</p>
 
   <div class="grid">
 
@@ -310,23 +310,23 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
-          <select class="field-select" id="leveling-announcement_channel_id"><option value="0">— Aucun —</option></select>
+          <div><div class="field-label">Announcement channel</div><div class="field-key">announcement_channel_id</div></div>
+          <select class="field-select" id="leveling-announcement_channel_id"><option value="0">— None —</option></select>
         </div>
         <div class="field-row">
-          <div><div class="field-label">Salons boostés</div><div class="field-key">boost_channels</div></div>
+          <div><div class="field-label">Boosted channels</div><div class="field-key">boost_channels</div></div>
           <div class="multiselect-wrap" id="ms-leveling-boost_channels"></div>
         </div>
         <div class="field-row">
-          <div><div class="field-label">Salons exclus</div><div class="field-key">exclude_channels</div></div>
+          <div><div class="field-label">Excluded channels</div><div class="field-key">exclude_channels</div></div>
           <div class="multiselect-wrap" id="ms-leveling-exclude_channels"></div>
         </div>
         <div class="field-row">
-          <div><div class="field-label">Rôles cumulables</div><div class="field-key">rewards_stackable</div></div>
+          <div><div class="field-label">Stackable rewards</div><div class="field-key">rewards_stackable</div></div>
           <label class="toggle sm"><input type="checkbox" id="leveling-rewards_stackable"/><span class="toggle-slider"></span></label>
         </div>
         <div class="divider"></div>
-        <p class="section-label">Récompenses — rewards (niveau → rôle ID)</p>
+        <p class="section-label">Rewards — rewards (level → role ID)</p>
         <div id="rewards-list" style="display:flex;flex-direction:column;gap:10px;"></div>
         <button type="button" id="add-reward-btn" onclick="addReward()" style="
           margin-top:6px;width:100%;padding:8px;
@@ -336,12 +336,12 @@
           display:flex;align-items:center;justify-content:center;gap:6px;"
           onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-          + Ajouter une récompense
+          + Add a reward
         </button>
       </div>
       <button class="save-btn" onclick="saveFeature('leveling')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -352,7 +352,7 @@
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
           <div>
-            <div class="card-title">Anniversaires</div>
+            <div class="card-title">Birthdays</div>
             <div class="card-desc">features.birthday</div>
           </div>
         </div>
@@ -360,31 +360,31 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
-          <select class="field-select" id="birthday-announcement_channel_id"><option value="0">— Aucun —</option></select>
+          <div><div class="field-label">Announcement channel</div><div class="field-key">announcement_channel_id</div></div>
+          <select class="field-select" id="birthday-announcement_channel_id"><option value="0">— None —</option></select>
         </div>
         <div class="divider"></div>
-        <p class="section-label">Cadeaux — birthday.gift</p>
+        <p class="section-label">Gifts — birthday.gift</p>
         <div class="field-row">
-          <div><div class="field-label">Cadeaux activés</div><div class="field-key">gift.enabled</div></div>
+          <div><div class="field-label">Gifts enabled</div><div class="field-key">gift.enabled</div></div>
           <label class="toggle sm"><input type="checkbox" id="birthday-gift_enabled"/><span class="toggle-slider"></span></label>
         </div>
         <div class="field-row">
-          <div><div class="field-label">XP offerte</div><div class="field-key">gift.xp</div></div>
+          <div><div class="field-label">Gift XP</div><div class="field-key">gift.xp</div></div>
           <input class="field-input" type="number" id="birthday-gift_xp" min="0"/>
         </div>
         <div class="field-row">
-          <div><div class="field-label">Rôles cadeaux</div><div class="field-key">gift.role</div></div>
+          <div><div class="field-label">Gift roles</div><div class="field-key">gift.role</div></div>
           <div class="multiselect-wrap" id="ms-birthday-gift_role"></div>
         </div>
         <div class="field-row">
-          <div><div class="field-label">Rôles temporaires</div><div class="field-key">gift.temporary_role</div></div>
+          <div><div class="field-label">Temporary roles</div><div class="field-key">gift.temporary_role</div></div>
           <div class="multiselect-wrap" id="ms-birthday-gift_temporary_role"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('birthday')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -395,7 +395,7 @@
             <svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
           </div>
           <div>
-            <div class="card-title">Comptage</div>
+            <div class="card-title">Counting</div>
             <div class="card-desc">features.counting</div>
           </div>
         </div>
@@ -403,8 +403,8 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Salon de comptage</div><div class="field-key">channel_id</div></div>
-          <select class="field-select" id="counting-channel_id"><option value="0">— Aucun —</option></select>
+          <div><div class="field-label">Counting channel</div><div class="field-key">channel_id</div></div>
+          <select class="field-select" id="counting-channel_id"><option value="0">— None —</option></select>
         </div>
         <div class="field-row">
           <div><div class="field-label">Checkpoints (×100)</div><div class="field-key">checkpoints</div></div>
@@ -413,7 +413,7 @@
       </div>
       <button class="save-btn" onclick="saveFeature('counting')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -432,13 +432,13 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Salon de rappel</div><div class="field-key">channel</div></div>
-          <select class="field-select" id="bump-channel"><option value="0">— Aucun —</option></select>
+          <div><div class="field-label">Reminder channel</div><div class="field-key">channel</div></div>
+          <select class="field-select" id="bump-channel"><option value="0">— None —</option></select>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('bump_reminder')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -457,13 +457,13 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Salon de bienvenue</div><div class="field-key">channel_id</div></div>
-          <select class="field-select" id="welcome-channel_id"><option value="0">— Aucun —</option></select>
+          <div><div class="field-label">Welcome channel</div><div class="field-key">channel_id</div></div>
+          <select class="field-select" id="welcome-channel_id"><option value="0">— None —</option></select>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('welcome')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -482,13 +482,13 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Salon d'au revoir</div><div class="field-key">channel_id</div></div>
-          <select class="field-select" id="goodbye-channel_id"><option value="0">— Aucun —</option></select>
+          <div><div class="field-label">Goodbye channel</div><div class="field-key">channel_id</div></div>
+          <select class="field-select" id="goodbye-channel_id"><option value="0">— None —</option></select>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('goodbye')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -499,7 +499,7 @@
             <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </div>
           <div>
-            <div class="card-title">Rôle Membre</div>
+            <div class="card-title">Member Role</div>
             <div class="card-desc">features.member_role</div>
           </div>
         </div>
@@ -507,13 +507,13 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Rôles attribués</div><div class="field-key">role_id</div></div>
+          <div><div class="field-label">Assigned roles</div><div class="field-key">role_id</div></div>
           <div class="multiselect-wrap" id="ms-member-role_id"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('member_role')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
       </button>
     </div>
 
@@ -524,7 +524,7 @@
             <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           </div>
           <div>
-            <div class="card-title">Autosuppression</div>
+            <div class="card-title">Auto-delete</div>
             <div class="card-desc">features.message_autodelete</div>
           </div>
         </div>
@@ -532,17 +532,45 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Délai avant suppression</div><div class="field-key">wait (secondes)</div></div>
+          <div><div class="field-label">Delay before deletion</div><div class="field-key">wait (seconds)</div></div>
           <input class="field-input" type="number" id="autodelete-wait" min="0"/>
         </div>
         <div class="field-row">
-          <div><div class="field-label">Salons concernés</div><div class="field-key">channels_id</div></div>
+          <div><div class="field-label">Affected channels</div><div class="field-key">channels_id</div></div>
           <div class="multiselect-wrap" id="ms-autodelete-channels_id"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('message_autodelete')">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
+        Save
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-tickets">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-blue">
+            <svg viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Tickets</div>
+            <div class="card-desc">features.tickets</div>
+          </div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Tickets category</div><div class="field-key">category_id</div></div>
+          <select class="field-select" id="tickets-category_id"><option value="0">— None —</option></select>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Mention roles</div><div class="field-key">mention_roles</div></div>
+          <div class="multiselect-wrap" id="ms-tickets-mention_roles"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('tickets')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
       </button>
     </div>
 
@@ -551,7 +579,7 @@
 
 <div id="toast">
   <span class="toast-dot"></span>
-  <span id="toast-msg">Sauvegardé !</span>
+  <span id="toast-msg">Saved!</span>
 </div>
 
 <script>
@@ -560,7 +588,7 @@
 
   if (!guildId) window.location.href = 'servers.html';
 
-  document.getElementById('server-name').textContent = 'Serveur #' + guildId;
+  document.getElementById('server-name').textContent = 'Server #' + guildId;
 
   let discordChannels = [];
   let discordRoles    = [];
@@ -581,7 +609,7 @@
     function renderTags() {
       box.innerHTML = '';
       if (selected.length === 0) {
-        box.innerHTML = '<span class="multiselect-placeholder">— Aucun —</span>';
+        box.innerHTML = '<span class="multiselect-placeholder">— None —</span>';
       } else {
         selected.forEach(id => {
           const item = items.find(i => String(i.id) === id);
@@ -670,12 +698,13 @@
       'bump-channel',
       'welcome-channel_id',
       'goodbye-channel_id',
+      'tickets-category_id',
     ];
     channelSelects.forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       const cur = sel.value;
-      sel.innerHTML = '<option value="0">— Aucun —</option>';
+      sel.innerHTML = '<option value="0">— None —</option>';
       channels.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
@@ -692,6 +721,7 @@
     buildMultiSelect('ms-birthday-gift_role',           roles, [], roleColor);
     buildMultiSelect('ms-birthday-gift_temporary_role', roles, [], roleColor);
     buildMultiSelect('ms-member-role_id',               roles, [], roleColor);
+    buildMultiSelect('ms-tickets-mention_roles',        roles, [], roleColor);
   }
 
   function setVal(id, val) {
@@ -741,9 +771,9 @@
   async function loadConfig() {
     try {
       const [chRes, roRes, cfRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/guild/${guildId}/channels`, { credentials: 'include' }),
-        fetch(`http://localhost:5000/api/guild/${guildId}/roles`,    { credentials: 'include' }),
-        fetch(`http://localhost:5000/api/config/${guildId}`,         { credentials: 'include' }),
+        fetch(`/api/guild/${guildId}/channels`, { credentials: 'include' }),
+        fetch(`/api/guild/${guildId}/roles`,    { credentials: 'include' }),
+        fetch(`/api/config/${guildId}`,         { credentials: 'include' }),
       ]);
 
       if (cfRes.status === 401 || chRes.status === 401) { window.location.href = 'login.html'; return; }
@@ -753,14 +783,14 @@
       discordChannels = chRes.ok ? await chRes.json() : [];
       discordRoles    = roRes.ok ? await roRes.json() : [];
 
-      if (!chRes.ok) showToast('⚠️ Salons non chargés (bot absent ?)', true);
+      if (!chRes.ok) showToast('⚠️ Channels not loaded (bot missing?)', true);
 
       populateSelects(discordChannels, discordRoles);
 
       currentConfig = await cfRes.json();
       populateForm(currentConfig);
     } catch (e) {
-      showToast('Erreur de chargement', true);
+      showToast('Loading error', true);
     } finally {
       document.getElementById('loading').classList.add('hidden');
     }
@@ -825,6 +855,10 @@
     toggleCard('autodelete', { checked: !!ad.enabled });
     setVal('autodelete-wait', ad.wait);
     setVal('autodelete-channels_id', ad.channels_id);
+
+    const tk = f.tickets || {};
+    setVal('tickets-category_id', tk.category_id);
+    setVal('tickets-mention_roles', tk.mention_roles);
   }
 
   async function saveFeature(feature) {
@@ -891,21 +925,26 @@
         wait: Number(getVal('autodelete-wait')) || 0,
         channels_id: getVal('autodelete-channels_id')
       };
+    } else if (feature === 'tickets') {
+      f.tickets = {
+        category_id: Number(getVal('tickets-category_id')) || 0,
+        mention_roles: getVal('tickets-mention_roles')
+      };
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/config/${guildId}`, {
+      const res = await fetch(`/api/config/${guildId}`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentConfig)
       });
       if (res.status === 401) { window.location.href = 'login.html'; return; }
-      if (res.status === 403) { showToast('Accès refusé', true); return; }
-      if (res.status === 404) { showToast("⚠️ Le bot n'est pas encore sur ce serveur.", true); return; }
+      if (res.status === 403) { showToast('Access denied', true); return; }
+      if (res.status === 404) { showToast("⚠️ Bot is not on this server yet.", true); return; }
       if (!res.ok) throw new Error();
-      showToast('✓ ' + feature + ' sauvegardé !');
+      showToast('✓ ' + feature + ' saved!');
     } catch {
-      showToast('Erreur de sauvegarde', true);
+      showToast('Save error', true);
     }
   }
 
@@ -929,7 +968,7 @@
         value="${level}" style="max-width:72px;text-align:center;flex:none;min-width:0;"/>
       <span style="color:var(--muted);font-size:0.8rem;flex-shrink:0;">→</span>
       <select class="field-select" style="max-width:none;flex:1;min-width:0;">
-        <option value="">— Rôle —</option>
+        <option value="">— Role —</option>
         ${roleOptions}
       </select>
       <button type="button" onclick="removeReward('${id}')" style="

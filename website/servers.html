@@ -195,23 +195,23 @@
 
   <div class="user-info">
     <div class="avatar-placeholder" id="user-avatar">?</div>
-    <span id="user-name">Chargement...</span>
+    <span id="user-name">Loading...</span>
   </div>
 
   <button class="logout-btn" onclick="logout()">
     <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    Déconnexion
+    Logout
   </button>
 </header>
 
 <main>
-  <h1 class="page-title">Vos serveurs, <em>choisissez.</em></h1>
-  <p class="page-sub">Sélectionnez un serveur pour gérer sa configuration.</p>
+  <h1 class="page-title">Your servers, <em>choose.</em></h1>
+  <p class="page-sub">Select a server to manage its configuration.</p>
 
   <div class="grid" id="grid">
     <div class="state-box">
       <div class="spinner"></div>
-      Chargement de vos serveurs...
+      Loading your servers...
     </div>
   </div>
 </main>
@@ -247,7 +247,7 @@
       const guilds = await res.json();
 
       if (guilds.length === 0) {
-        grid.innerHTML = `<div class="state-box">Aucun serveur trouvé où vous êtes administrateur.</div>`;
+        grid.innerHTML = `<div class="state-box">No server found where you are an administrator.</div>`;
         return;
       }
 
@@ -273,7 +273,7 @@
         grid.appendChild(card);
       });
     } catch {
-      grid.innerHTML = `<div class="state-box">Erreur lors du chargement. <a href="login.html" style="color:var(--accent)">Reconnectez-vous.</a></div>`;
+      grid.innerHTML = `<div class="state-box">Error while loading. <a href="login.html" style="color:var(--accent)">Sign in again.</a></div>`;
     }
   }
 
