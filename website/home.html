@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chaaat. — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f0f8ff;
+      --surface:     #ffffff;
+      --accent:      #4a7fd4;
+      --accent-h:    #3568bc;
+      --accent-soft: rgba(74,127,212,0.10);
+      --text:        #1a2540;
+      --muted:       #7a8fad;
+      --border:      #d4e2f4;
+      --success:     #2ecc8f;
+      --warning:     #f5a623;
+      --danger:      #e05a5a;
+      --shadow:      0 4px 24px rgba(74,127,212,0.08);
+      --shadow-lg:   0 8px 40px rgba(74,127,212,0.13);
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(180,210,255,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 95% 100%, rgba(200,225,255,0.3) 0%, transparent 60%);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(74,127,212,0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(240,248,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), #82b0f0);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-icon svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .brand-name { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--text); }
+
+    .server-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.82rem; font-weight: 500; color: var(--muted);
+      box-shadow: var(--shadow);
+    }
+    .server-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 6px rgba(46,204,143,0.5); }
+
+    .logout-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem; color: var(--muted);
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .logout-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .logout-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    main {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .page-title { font-family: 'DM Serif Display', serif; font-size: 1.9rem; font-weight: 400; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .page-title em { font-style: italic; color: var(--accent); }
+    .page-sub { font-size: 0.875rem; color: var(--muted); font-weight: 300; margin-bottom: 36px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.25s, transform 0.25s;
+      animation: rise 0.5s cubic-bezier(.22,.68,0,1.2) both;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .card:nth-child(1){animation-delay:.05s} .card:nth-child(2){animation-delay:.10s}
+    .card:nth-child(3){animation-delay:.15s} .card:nth-child(4){animation-delay:.20s}
+    .card:nth-child(5){animation-delay:.25s} .card:nth-child(6){animation-delay:.30s}
+    .card:nth-child(7){animation-delay:.35s} .card:nth-child(8){animation-delay:.40s}
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .card-title-wrap { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .card-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; font-weight: 400; }
+    .card-desc { font-size: 0.78rem; color: var(--muted); margin-top: 1px; font-weight: 300; }
+
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .toggle.sm { width: 36px; height: 20px; }
+    .toggle.sm .toggle-slider::before { width: 14px; height: 14px; }
+    .toggle.sm input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    .fields { display: flex; flex-direction: column; gap: 14px; }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .field-row > div:first-child { flex-shrink: 0; min-width: 0; }
+    .field-label { font-size: 0.82rem; color: var(--muted); font-weight: 400; }
+    .field-key { font-size: 0.7rem; color: #b0c2d8; font-family: monospace; margin-top: 1px; }
+
+    .field-input {
+      flex: 1;
+      min-width: 0;
+      max-width: 180px;
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      text-align: right;
+      box-sizing: border-box;
+    }
+    .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background: #fff; }
+    .field-input::placeholder { color: #b0c2d8; }
+
+    .field-select {
+      flex: 1; min-width: 0; max-width: 200px;
+      padding: 8px 28px 8px 10px;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text);
+      outline: none; appearance: none; cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
+
+    .multiselect-wrap { flex: 1; min-width: 120px; max-width: 200px; position: relative; }
+    .multiselect-box {
+      min-height: 36px; padding: 4px 28px 4px 8px;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+      transition: border-color 0.2s;
+    }
+    .multiselect-box:focus-within, .multiselect-box.open { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
+    .multiselect-tag {
+      background: var(--accent-soft); color: var(--accent);
+      border-radius: 5px; padding: 2px 6px; font-size: 0.75rem; font-weight: 500;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .multiselect-tag button { background: none; border: none; cursor: pointer; color: var(--accent); padding: 0; font-size: 0.75rem; line-height: 1; }
+    .multiselect-placeholder { font-size: 0.82rem; color: #b0c2d8; padding: 2px 4px; }
+    .multiselect-dropdown {
+      position: absolute; top: calc(100% + 4px); right: 0; left: 0; z-index: 50;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(74,127,212,0.12);
+      max-height: 200px; overflow-y: auto; display: none;
+    }
+    .multiselect-dropdown.open { display: block; }
+    .multiselect-option {
+      padding: 8px 12px; font-size: 0.83rem; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: background 0.15s;
+    }
+    .multiselect-option:hover { background: var(--accent-soft); }
+    .multiselect-option.selected { color: var(--accent); font-weight: 500; }
+    .multiselect-option input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; }
+
+    .card.disabled .fields { opacity: 0.38; pointer-events: none; }
+    .card.disabled .card-title { color: var(--muted); }
+
+    .save-btn {
+      margin-top: 18px; width: 100%; padding: 10px;
+      background: var(--accent-soft); color: var(--accent);
+      border: 1.5px solid rgba(74,127,212,0.2); border-radius: 9px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .save-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .save-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    #toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: var(--text); color: #fff;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none; z-index: 999;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { background: var(--danger); }
+    #toast .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    #toast.error .toast-dot { background: #fff; }
+
+    .icon-blue   { background: rgba(74,127,212,0.12); } .icon-blue   svg { stroke: var(--accent); }
+    .icon-green  { background: rgba(46,204,143,0.12); } .icon-green  svg { stroke: var(--success); }
+    .icon-orange { background: rgba(245,166,35,0.12); } .icon-orange svg { stroke: var(--warning); }
+    .icon-red    { background: rgba(224,90,90,0.12);  } .icon-red    svg { stroke: var(--danger); }
+    .icon-purple { background: rgba(155,89,182,0.12); } .icon-purple svg { stroke: #9b59b6; }
+    .icon-teal   { background: rgba(26,188,156,0.12); } .icon-teal   svg { stroke: #1abc9c; }
+    .icon-pink   { background: rgba(232,67,147,0.12); } .icon-pink   svg { stroke: #e84393; }
+    .icon-gray   { background: rgba(127,140,141,0.12);} .icon-gray   svg { stroke: #7f8c8d; }
+
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .section-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      transition: opacity 0.4s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.85rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Chargement de la configuration...</div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="brand-name">Chaaat.</span>
+  </div>
+  <div class="server-badge">
+    <div class="server-dot"></div>
+    <span id="server-name">Chargement...</span>
+  </div>
+  <button class="logout-btn" onclick="logout()">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Déconnexion
+  </button>
+</header>
+
+<main>
+  <h1 class="page-title">Tableau de bord, <em>Chaaat.</em></h1>
+  <p class="page-sub">Les modifications correspondent directement aux clés de votre <code style="font-size:0.8rem;background:var(--accent-soft);padding:2px 6px;border-radius:4px;color:var(--accent)">config.yaml</code>.</p>
+
+  <div class="grid">
+
+    <div class="card disabled" id="card-leveling">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-blue">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Leveling</div>
+            <div class="card-desc">features.leveling</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-leveling" onchange="toggleCard('leveling',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
+          <select class="field-select" id="leveling-announcement_channel_id"><option value="0">— Aucun —</option></select>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Salons boostés</div><div class="field-key">boost_channels</div></div>
+          <div class="multiselect-wrap" id="ms-leveling-boost_channels"></div>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Salons exclus</div><div class="field-key">exclude_channels</div></div>
+          <div class="multiselect-wrap" id="ms-leveling-exclude_channels"></div>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Rôles cumulables</div><div class="field-key">rewards_stackable</div></div>
+          <label class="toggle sm"><input type="checkbox" id="leveling-rewards_stackable"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="divider"></div>
+        <p class="section-label">Récompenses — rewards (niveau → rôle ID)</p>
+        <div id="rewards-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button type="button" id="add-reward-btn" onclick="addReward()" style="
+          margin-top:6px;width:100%;padding:8px;
+          background:none;border:1.5px dashed var(--border);border-radius:8px;
+          color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.82rem;
+          cursor:pointer;transition:all 0.2s;
+          display:flex;align-items:center;justify-content:center;gap:6px;"
+          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          + Ajouter une récompense
+        </button>
+      </div>
+      <button class="save-btn" onclick="saveFeature('leveling')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-birthday">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-pink">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Anniversaires</div>
+            <div class="card-desc">features.birthday</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-birthday" onchange="toggleCard('birthday',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Salon d'annonce</div><div class="field-key">announcement_channel_id</div></div>
+          <select class="field-select" id="birthday-announcement_channel_id"><option value="0">— Aucun —</option></select>
+        </div>
+        <div class="divider"></div>
+        <p class="section-label">Cadeaux — birthday.gift</p>
+        <div class="field-row">
+          <div><div class="field-label">Cadeaux activés</div><div class="field-key">gift.enabled</div></div>
+          <label class="toggle sm"><input type="checkbox" id="birthday-gift_enabled"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">XP offerte</div><div class="field-key">gift.xp</div></div>
+          <input class="field-input" type="number" id="birthday-gift_xp" min="0"/>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Rôles cadeaux</div><div class="field-key">gift.role</div></div>
+          <div class="multiselect-wrap" id="ms-birthday-gift_role"></div>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Rôles temporaires</div><div class="field-key">gift.temporary_role</div></div>
+          <div class="multiselect-wrap" id="ms-birthday-gift_temporary_role"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('birthday')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-counting">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-orange">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Comptage</div>
+            <div class="card-desc">features.counting</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-counting" onchange="toggleCard('counting',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Salon de comptage</div><div class="field-key">channel_id</div></div>
+          <select class="field-select" id="counting-channel_id"><option value="0">— Aucun —</option></select>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Checkpoints (×100)</div><div class="field-key">checkpoints</div></div>
+          <label class="toggle sm"><input type="checkbox" id="counting-checkpoints"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('counting')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-bump">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-teal">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Bump Reminder</div>
+            <div class="card-desc">features.bump_reminder</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-bump" onchange="toggleCard('bump',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Salon de rappel</div><div class="field-key">channel</div></div>
+          <select class="field-select" id="bump-channel"><option value="0">— Aucun —</option></select>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('bump_reminder')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-welcome">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-green">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Welcome</div>
+            <div class="card-desc">features.welcome</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-welcome" onchange="toggleCard('welcome',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Salon de bienvenue</div><div class="field-key">channel_id</div></div>
+          <select class="field-select" id="welcome-channel_id"><option value="0">— Aucun —</option></select>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('welcome')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-goodbye">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-red">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 9l5 5-5 5"/><path d="M16 14h7"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Goodbye</div>
+            <div class="card-desc">features.goodbye</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-goodbye" onchange="toggleCard('goodbye',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Salon d'au revoir</div><div class="field-key">channel_id</div></div>
+          <select class="field-select" id="goodbye-channel_id"><option value="0">— Aucun —</option></select>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('goodbye')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-member">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-gray">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Rôle Membre</div>
+            <div class="card-desc">features.member_role</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-member" onchange="toggleCard('member',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Rôles attribués</div><div class="field-key">role_id</div></div>
+          <div class="multiselect-wrap" id="ms-member-role_id"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('member_role')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+    <div class="card disabled" id="card-autodelete">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-purple">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Autosuppression</div>
+            <div class="card-desc">features.message_autodelete</div>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggle-autodelete" onchange="toggleCard('autodelete',this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="fields">
+        <div class="field-row">
+          <div><div class="field-label">Délai avant suppression</div><div class="field-key">wait (secondes)</div></div>
+          <input class="field-input" type="number" id="autodelete-wait" min="0"/>
+        </div>
+        <div class="field-row">
+          <div><div class="field-label">Salons concernés</div><div class="field-key">channels_id</div></div>
+          <div class="multiselect-wrap" id="ms-autodelete-channels_id"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveFeature('message_autodelete')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<div id="toast">
+  <span class="toast-dot"></span>
+  <span id="toast-msg">Sauvegardé !</span>
+</div>
+
+<script>
+  const params  = new URLSearchParams(window.location.search);
+  const guildId = params.get('guild_id');
+
+  if (!guildId) window.location.href = 'servers.html';
+
+  document.getElementById('server-name').textContent = 'Serveur #' + guildId;
+
+  let discordChannels = [];
+  let discordRoles    = [];
+
+  function buildMultiSelect(wrapId, items, selectedIds = [], colorFn = null) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    let selected = selectedIds.map(String);
+
+    const box = document.createElement('div');
+    box.className = 'multiselect-box';
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'multiselect-dropdown';
+
+    function renderTags() {
+      box.innerHTML = '';
+      if (selected.length === 0) {
+        box.innerHTML = '<span class="multiselect-placeholder">— Aucun —</span>';
+      } else {
+        selected.forEach(id => {
+          const item = items.find(i => String(i.id) === id);
+          const tag = document.createElement('span');
+          tag.className = 'multiselect-tag';
+          tag.innerHTML = `${item ? item.name : id} <button type="button" data-id="${id}">×</button>`;
+          tag.querySelector('button').addEventListener('click', e => {
+            e.stopPropagation();
+            selected = selected.filter(s => s !== id);
+            renderTags(); renderOptions();
+          });
+          box.appendChild(tag);
+        });
+      }
+      const sp = document.createElement('span');
+      sp.style.cssText = 'flex:1;min-width:0;';
+      box.appendChild(sp);
+    }
+
+    function renderOptions() {
+      dropdown.innerHTML = '';
+      items.forEach(item => {
+        const opt = document.createElement('div');
+        opt.className = 'multiselect-option' + (selected.includes(String(item.id)) ? ' selected' : '');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = selected.includes(String(item.id));
+        cb.addEventListener('change', () => {
+          if (cb.checked) { if (!selected.includes(String(item.id))) selected.push(String(item.id)); }
+          else { selected = selected.filter(s => s !== String(item.id)); }
+          renderTags(); renderOptions();
+        });
+
+        let label = item.name;
+        if (colorFn) {
+          const hex = colorFn(item);
+          if (hex) label = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${hex};margin-right:4px;flex-shrink:0;"></span>${item.name}`;
+        }
+        opt.innerHTML = ``;
+        opt.prepend(cb);
+        const span = document.createElement('span');
+        span.innerHTML = label;
+        opt.appendChild(span);
+        dropdown.appendChild(opt);
+      });
+    }
+
+    box.addEventListener('click', e => {
+      const isOpen = dropdown.classList.contains('open');
+      document.querySelectorAll('.multiselect-dropdown.open').forEach(d => {
+        d.classList.remove('open');
+        d.previousSibling?.classList?.remove('open');
+      });
+      if (!isOpen) { dropdown.classList.add('open'); box.classList.add('open'); }
+    });
+
+    document.addEventListener('click', e => {
+      if (!wrap.contains(e.target)) {
+        dropdown.classList.remove('open');
+        box.classList.remove('open');
+      }
+    }, true);
+
+    renderTags();
+    renderOptions();
+    wrap.appendChild(box);
+    wrap.appendChild(dropdown);
+
+    wrap._getSelected = () => selected.map(Number);
+    wrap._setSelected = (ids) => {
+      selected = (ids || []).map(String);
+      renderTags(); renderOptions();
+    };
+  }
+
+  function roleColor(role) {
+    if (!role.color) return null;
+    return '#' + role.color.toString(16).padStart(6, '0');
+  }
+
+  function populateSelects(channels, roles) {
+    const channelSelects = [
+      'leveling-announcement_channel_id',
+      'birthday-announcement_channel_id',
+      'counting-channel_id',
+      'bump-channel',
+      'welcome-channel_id',
+      'goodbye-channel_id',
+    ];
+    channelSelects.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="0">— Aucun —</option>';
+      channels.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = (c.type === 4 ? '📁 ' : '#') + c.name;
+        sel.appendChild(opt);
+      });
+      sel.value = cur || '0';
+    });
+
+    buildMultiSelect('ms-leveling-boost_channels',    channels);
+    buildMultiSelect('ms-leveling-exclude_channels',  channels);
+    buildMultiSelect('ms-autodelete-channels_id',     channels);
+
+    buildMultiSelect('ms-birthday-gift_role',           roles, [], roleColor);
+    buildMultiSelect('ms-birthday-gift_temporary_role', roles, [], roleColor);
+    buildMultiSelect('ms-member-role_id',               roles, [], roleColor);
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    const ms = document.getElementById('ms-' + id);
+
+    if (ms) {
+      ms._setSelected(Array.isArray(val) ? val : (val ? [val] : []));
+      return;
+    }
+    if (!el) return;
+    if (el.tagName === 'SELECT') {
+      el.value = val ? String(val) : '0';
+      return;
+    }
+    if (el.type === 'checkbox') { el.checked = !!val; return; }
+    if (Array.isArray(val)) { el.value = val.join(', '); return; }
+    el.value = (val === 0 || val === null || val === undefined) ? '' : val;
+  }
+
+  function getVal(id) {
+    const el = document.getElementById(id);
+    const ms = document.getElementById('ms-' + id);
+
+    if (ms) return ms._getSelected ? ms._getSelected() : [];
+    if (!el) return null;
+    if (el.tagName === 'SELECT') return el.value;
+    if (el.type === 'checkbox') return el.checked;
+    if (el.type === 'number') return el.value === '' ? 0 : Number(el.value);
+    return el.value;
+  }
+
+  function toggleCard(id, checkbox) {
+    document.getElementById('card-' + id).classList.toggle('disabled', !checkbox.checked);
+  }
+
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  let currentConfig = null;
+
+  async function loadConfig() {
+    try {
+      const [chRes, roRes, cfRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/guild/${guildId}/channels`, { credentials: 'include' }),
+        fetch(`http://localhost:5000/api/guild/${guildId}/roles`,    { credentials: 'include' }),
+        fetch(`http://localhost:5000/api/config/${guildId}`,         { credentials: 'include' }),
+      ]);
+
+      if (cfRes.status === 401 || chRes.status === 401) { window.location.href = 'login.html'; return; }
+      if (cfRes.status === 403) { window.location.href = 'servers.html'; return; }
+      if (!cfRes.ok) throw new Error('Erreur config');
+
+      discordChannels = chRes.ok ? await chRes.json() : [];
+      discordRoles    = roRes.ok ? await roRes.json() : [];
+
+      if (!chRes.ok) showToast('⚠️ Salons non chargés (bot absent ?)', true);
+
+      populateSelects(discordChannels, discordRoles);
+
+      currentConfig = await cfRes.json();
+      populateForm(currentConfig);
+    } catch (e) {
+      showToast('Erreur de chargement', true);
+    } finally {
+      document.getElementById('loading').classList.add('hidden');
+    }
+  }
+
+  function populateForm(cfg) {
+    const f = cfg.features;
+
+    const lv = f.leveling || {};
+    document.getElementById('toggle-leveling').checked = !!lv.enabled;
+    toggleCard('leveling', { checked: !!lv.enabled });
+    setVal('leveling-announcement_channel_id', lv.announcement_channel_id);
+    setVal('leveling-boost_channels',  lv.boost_channels);
+    setVal('leveling-exclude_channels', lv.exclude_channels);
+    setVal('leveling-rewards_stackable', lv.rewards_stackable);
+    const rewardsList = document.getElementById('rewards-list');
+    rewardsList.innerHTML = '';
+    rewardCount = 0;
+    Object.entries(lv.rewards || {}).forEach(([level, role]) => {
+      if (level === '0' && role === 0) return;
+      addReward(level, role);
+    });
+
+    const bd = f.birthday || {};
+    document.getElementById('toggle-birthday').checked = !!bd.enabled;
+    toggleCard('birthday', { checked: !!bd.enabled });
+    setVal('birthday-announcement_channel_id', bd.announcement_channel_id);
+    const gift = bd.gift || {};
+    setVal('birthday-gift_enabled', gift.enabled);
+    setVal('birthday-gift_xp', gift.xp);
+    setVal('birthday-gift_role', gift.role);
+    setVal('birthday-gift_temporary_role', gift.temporary_role);
+
+    const ct = f.counting || {};
+    document.getElementById('toggle-counting').checked = !!ct.enabled;
+    toggleCard('counting', { checked: !!ct.enabled });
+    setVal('counting-channel_id', ct.channel_id);
+    setVal('counting-checkpoints', ct.checkpoints);
+
+    const bp = f.bump_reminder || {};
+    document.getElementById('toggle-bump').checked = !!bp.enabled;
+    toggleCard('bump', { checked: !!bp.enabled });
+    setVal('bump-channel', bp.channel);
+
+    const wc = f.welcome || {};
+    document.getElementById('toggle-welcome').checked = !!wc.enabled;
+    toggleCard('welcome', { checked: !!wc.enabled });
+    setVal('welcome-channel_id', wc.channel_id);
+
+    const gb = f.goodbye || {};
+    document.getElementById('toggle-goodbye').checked = !!gb.enabled;
+    toggleCard('goodbye', { checked: !!gb.enabled });
+    setVal('goodbye-channel_id', gb.channel_id);
+
+    const mr = f.member_role || {};
+    document.getElementById('toggle-member').checked = !!mr.enabled;
+    toggleCard('member', { checked: !!mr.enabled });
+    setVal('member-role_id', mr.role_id);
+
+    const ad = f.message_autodelete || {};
+    document.getElementById('toggle-autodelete').checked = !!ad.enabled;
+    toggleCard('autodelete', { checked: !!ad.enabled });
+    setVal('autodelete-wait', ad.wait);
+    setVal('autodelete-channels_id', ad.channels_id);
+  }
+
+  async function saveFeature(feature) {
+    if (!currentConfig) return;
+    const f = currentConfig.features;
+
+    if (feature === 'leveling') {
+      const rewards = {};
+      document.querySelectorAll('#rewards-list > div[id^="reward-"]').forEach(row => {
+        const inputs = row.querySelectorAll('input[type=number], input[type=text], select');
+        const level = inputs[0].value;
+        const roleEl = inputs[1];
+        const role = roleEl.tagName === 'SELECT' ? roleEl.value : roleEl.value;
+        if (level && role) rewards[level] = Number(role);
+      });
+      f.leveling = {
+        enabled: document.getElementById('toggle-leveling').checked,
+        announcement_channel_id: Number(getVal('leveling-announcement_channel_id')) || 0,
+        boost_channels:   getVal('leveling-boost_channels'),
+        exclude_channels: getVal('leveling-exclude_channels'),
+        rewards_stackable: getVal('leveling-rewards_stackable'),
+        rewards: Object.keys(rewards).length ? rewards : { "0": 0 }
+      };
+    } else if (feature === 'birthday') {
+      f.birthday = {
+        enabled: document.getElementById('toggle-birthday').checked,
+        announcement_channel_id: Number(getVal('birthday-announcement_channel_id')) || 0,
+        gift: {
+          enabled: getVal('birthday-gift_enabled'),
+          xp: Number(getVal('birthday-gift_xp')) || 0,
+          role: getVal('birthday-gift_role'),
+          temporary_role: getVal('birthday-gift_temporary_role')
+        }
+      };
+    } else if (feature === 'counting') {
+      f.counting = {
+        enabled: document.getElementById('toggle-counting').checked,
+        channel_id: Number(getVal('counting-channel_id')) || 0,
+        checkpoints: getVal('counting-checkpoints')
+      };
+    } else if (feature === 'bump_reminder') {
+      f.bump_reminder = {
+        enabled: document.getElementById('toggle-bump').checked,
+        channel: Number(getVal('bump-channel')) || 0
+      };
+    } else if (feature === 'welcome') {
+      f.welcome = {
+        enabled: document.getElementById('toggle-welcome').checked,
+        channel_id: Number(getVal('welcome-channel_id')) || 0
+      };
+    } else if (feature === 'goodbye') {
+      f.goodbye = {
+        enabled: document.getElementById('toggle-goodbye').checked,
+        channel_id: Number(getVal('goodbye-channel_id')) || 0
+      };
+    } else if (feature === 'member_role') {
+      f.member_role = {
+        enabled: document.getElementById('toggle-member').checked,
+        role_id: getVal('member-role_id')
+      };
+    } else if (feature === 'message_autodelete') {
+      f.message_autodelete = {
+        enabled: document.getElementById('toggle-autodelete').checked,
+        wait: Number(getVal('autodelete-wait')) || 0,
+        channels_id: getVal('autodelete-channels_id')
+      };
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/config/${guildId}`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentConfig)
+      });
+      if (res.status === 401) { window.location.href = 'login.html'; return; }
+      if (res.status === 403) { showToast('Accès refusé', true); return; }
+      if (res.status === 404) { showToast("⚠️ Le bot n'est pas encore sur ce serveur.", true); return; }
+      if (!res.ok) throw new Error();
+      showToast('✓ ' + feature + ' sauvegardé !');
+    } catch {
+      showToast('Erreur de sauvegarde', true);
+    }
+  }
+
+  let rewardCount = 0;
+
+  function addReward(level = '', role = '') {
+    rewardCount++;
+    const id = 'reward-' + rewardCount;
+    const row = document.createElement('div');
+    row.id = id;
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;';
+
+    const roleOptions = discordRoles.map(r => {
+      const hex = r.color ? '#' + r.color.toString(16).padStart(6,'0') : null;
+      const dot = hex ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hex};margin-right:4px;"></span>` : '';
+      return `<option value="${r.id}" ${String(r.id) === String(role) ? 'selected' : ''}>${r.name}</option>`;
+    }).join('');
+
+    row.innerHTML = `
+      <input class="field-input" type="number" min="1" max="999" placeholder="Niveau"
+        value="${level}" style="max-width:72px;text-align:center;flex:none;min-width:0;"/>
+      <span style="color:var(--muted);font-size:0.8rem;flex-shrink:0;">→</span>
+      <select class="field-select" style="max-width:none;flex:1;min-width:0;">
+        <option value="">— Rôle —</option>
+        ${roleOptions}
+      </select>
+      <button type="button" onclick="removeReward('${id}')" style="
+        background:none;border:none;cursor:pointer;padding:4px;
+        color:var(--muted);transition:color 0.2s;flex-shrink:0;"
+        onmouseover="this.style.color='var(--danger)'"
+        onmouseout="this.style.color='var(--muted)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>`;
+    document.getElementById('rewards-list').appendChild(row);
+  }
+
+  function removeReward(id) { document.getElementById(id)?.remove(); }
+
+  async function logout() {
+    await fetch('/api/logout', { credentials: 'include' });
+    window.location.href = 'login.html';
+  }
+
+  loadConfig();
+</script>
+</body>
+</html>

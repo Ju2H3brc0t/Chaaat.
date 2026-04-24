@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mes serveurs — Chaaat.</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f0f8ff;
+      --card:    #ffffff;
+      --accent:  #4a7fd4;
+      --accent-h:#3568bc;
+      --accent-soft: rgba(74,127,212,0.10);
+      --text:    #1a2540;
+      --muted:   #7a8fad;
+      --border:  #d4e2f4;
+      --success: #2ecc8f;
+      --shadow:  0 4px 24px rgba(74,127,212,0.08);
+      --shadow-lg: 0 8px 40px rgba(74,127,212,0.13);
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(180,210,255,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 95% 100%, rgba(200,225,255,0.3) 0%, transparent 60%);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(74,127,212,0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(240,248,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), #82b0f0);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-icon svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .brand-name { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--text); }
+
+    .user-info {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; color: var(--muted);
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      object-fit: cover;
+      background: var(--border);
+    }
+
+    .avatar-placeholder {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #82b0f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600; color: #fff;
+      flex-shrink: 0;
+    }
+
+    .logout-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem; color: var(--muted);
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .logout-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .logout-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    main {
+      position: relative; z-index: 1;
+      max-width: 860px; margin: 0 auto;
+      padding: 48px 24px 60px;
+    }
+
+    .page-title { font-family: 'DM Serif Display', serif; font-size: 1.9rem; font-weight: 400; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .page-title em { font-style: italic; color: var(--accent); }
+    .page-sub { font-size: 0.875rem; color: var(--muted); font-weight: 300; margin-bottom: 36px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .server-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: box-shadow 0.25s, transform 0.25s, border-color 0.2s;
+      display: flex; align-items: center; gap: 14px;
+      animation: rise 0.4s cubic-bezier(.22,.68,0,1.2) both;
+      text-decoration: none; color: inherit;
+    }
+
+    .server-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .server-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), #82b0f0);
+    }
+
+    .server-icon-placeholder {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), #82b0f0);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem; color: #fff;
+      flex-shrink: 0;
+    }
+
+    .server-info { flex: 1; min-width: 0; }
+    .server-name { font-weight: 500; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .server-id { font-size: 0.75rem; color: var(--muted); margin-top: 2px; font-family: monospace; }
+
+    .server-arrow {
+      width: 20px; height: 20px;
+      stroke: var(--muted); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0; transition: stroke 0.2s, transform 0.2s;
+    }
+    .server-card:hover .server-arrow { stroke: var(--accent); transform: translateX(2px); }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .state-box {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="brand-name">Chaaat.</span>
+  </div>
+
+  <div class="user-info">
+    <div class="avatar-placeholder" id="user-avatar">?</div>
+    <span id="user-name">Chargement...</span>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Déconnexion
+  </button>
+</header>
+
+<main>
+  <h1 class="page-title">Vos serveurs, <em>choisissez.</em></h1>
+  <p class="page-sub">Sélectionnez un serveur pour gérer sa configuration.</p>
+
+  <div class="grid" id="grid">
+    <div class="state-box">
+      <div class="spinner"></div>
+      Chargement de vos serveurs...
+    </div>
+  </div>
+</main>
+
+<script>
+  async function loadUser() {
+    try {
+      const res = await fetch("/api/me", { credentials: "include" });
+      if (!res.ok) { window.location.href = "login.html"; return; }
+      const user = await res.json();
+
+      document.getElementById("user-name").textContent = user.username;
+      const avatarEl = document.getElementById("user-avatar");
+      if (user.avatar) {
+        const img = document.createElement("img");
+        img.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`;
+        img.className = "avatar";
+        img.alt = user.username;
+        avatarEl.replaceWith(img);
+      } else {
+        avatarEl.textContent = user.username[0].toUpperCase();
+      }
+    } catch {
+      window.location.href = "login.html";
+    }
+  }
+
+  async function loadGuilds() {
+    const grid = document.getElementById("grid");
+    try {
+      const res = await fetch("/api/guilds", { credentials: "include" });
+      if (!res.ok) { window.location.href = "login.html"; return; }
+      const guilds = await res.json();
+
+      if (guilds.length === 0) {
+        grid.innerHTML = `<div class="state-box">Aucun serveur trouvé où vous êtes administrateur.</div>`;
+        return;
+      }
+
+      grid.innerHTML = "";
+      guilds.forEach((g, i) => {
+        const card = document.createElement("a");
+        card.className = "server-card";
+        card.href = `/home.html?guild_id=${g.id}`;
+        card.style.animationDelay = `${i * 0.05}s`;
+        
+        const iconHtml = g.icon
+          ? `<img class="server-icon" src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128" alt="${g.name}"/>`
+          : `<div class="server-icon-placeholder">${g.name[0].toUpperCase()}</div>`;
+
+        card.innerHTML = `
+          ${iconHtml}
+          <div class="server-info">
+            <div class="server-name">${g.name}</div>
+            <div class="server-id">${g.id}</div>
+          </div>
+          <svg class="server-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        `;
+        grid.appendChild(card);
+      });
+    } catch {
+      grid.innerHTML = `<div class="state-box">Erreur lors du chargement. <a href="login.html" style="color:var(--accent)">Reconnectez-vous.</a></div>`;
+    }
+  }
+
+  async function logout() {
+    await fetch("/api/logout", { credentials: "include" });
+    window.location.href = "login.html";
+  }
+
+  loadUser();
+  loadGuilds();
+</script>
+</body>
+</html>
