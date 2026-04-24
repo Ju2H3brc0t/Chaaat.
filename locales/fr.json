@@ -44,6 +44,9 @@
     "has been kicked from the server": "a été exclu du serveur",
     "You have been banned from the server": "Vous avez été définitivement banni de",
     "has been banned from the server": "a été banni définitivement. Raison :",
+    "🎫 Create a ticket": "🎫 Créer un ticket",
+    "You can create a ticket if you need to contact a staff member. Any abuse will be penalized. To create a ticket, click the button below.": "Vous pouvez créer un ticket si vous avez besoin de contacter un membre du staff. Tout abus sera sanctionné. Pour créer un ticket, cliquez sur le bouton ci-dessous.",
+    "⛔ This command can only be used in a ticket channel.": "⛔ Cette commande ne peut être utilisé que dans un ticket",
     "Happy Birthday !": "Joyeux Anniversaire !",
     "🎉🎂 Today we wish an happy birthday to": "🎉🎂 Aujourd'hui on souhaite un joyeux anniversaire à",
     "Welcome !": "Bienvenue",
@@ -64,5 +67,12 @@
     "🥀 This calculation is too complex.\n-# Next number is {expected_count}.": "🥀 Ce calcul est trop complexe.\n-# Leprochain nombre est {expected_count}.",
     "made a mistake, but the preceding number is a checkpoint.\n-# Next number is {expected_count}.": "a fait une erreur, mais le nombre précédent était un checkpoint.\n-# Le prochain nombre est {expected_count}.",
     "made a mistake, the counter has returned to the previous checkpoint.\n-# Next number is {previous_checkpoint}.": "a fait une erreur, le comptage est revenu au checkpoint précédent.\n-# Le prochain nombre est {expected_count}.",
-    "made a mistake, the counter has been reset.\n-# Next number is 1.": "a fait une erreur, le comptage a été réinitialisée.\n-# Le prochain nombre est 1."
+    "made a mistake, the counter has been reset.\n-# Next number is 1.": "a fait une erreur, le comptage a été réinitialisée.\n-# Le prochain nombre est 1.",
+    "Reason": "Raison",
+    "🎫 Ticket": "🎫 Ticket",
+    "hello !\nThank you for creating a ticket, a staff member will answer shortly\n\n**Reason of the ticket** :": "bonjour !\nMerci d'avoir créé un ticket, un membre du staff vous répondra d'ici peu\n\n**Raison du ticket** :",
+    "✅ Your ticket has been created :": "✅ Votre ticket a été créé :",
+    "Opening a ticket": "Ouverture d'un ticket",
+    "Reason of the ticket": "Raison du ticket",
+    "Explain your problem here...": "Expliquez brièvement votre problème ici..."
 }

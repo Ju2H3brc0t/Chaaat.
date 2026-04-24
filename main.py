@@ -1,4 +1,5 @@
 from utils import init_db
+from ui.tickets import TicketLauncher
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -49,6 +50,9 @@ async def on_ready():
                 print(f'⚠️ Failed to load extension {extension}: {e}.')
                 traceback.print_exc()
         
+        client.add_view(TicketLauncher())
+        print("📩 Ticket view registered (Persistent)")
+
         try:
             synced = await client.tree.sync()
             print(f'🌐 Synced {len(synced)} command(s)')
