@@ -33,6 +33,9 @@ features:
     channels_id: [] # Autodeletion of messages in the list
     enabled: false 
     wait: 0 # For how long do the bot have to wait before deleting the message
+  tickets:
+    category_id: 0 # The category where the tickets will be created
+    mention_roles: [] # Roles to mention when a ticket is created
   welcome:
     channel_id: 0
     enabled: false
