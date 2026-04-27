@@ -962,8 +962,7 @@
       };
     } else if (feature === 'tickets') {
       f.tickets = {
-        category_id: String(getVal('tickets-category_id') || '0'),
-        mention_roles: getVal('tickets-mention_roles').map(String)
+        roles: getVal('tickets-roles').map(String)
       };
     }
 
