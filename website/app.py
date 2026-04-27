@@ -23,8 +23,7 @@ app.secret_key = os.getenv("APP_SECRET_KEY")
 
 CLIENT_ID     = os.getenv("DISCORD_CLIENT_ID")
 CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
-#REDIRECT_URI  = f"http://{PUBLIC_IP}:5000/callback"
-REDIRECT_URI  = f"http://localhost:5000/callback"
+REDIRECT_URI  = f"http://{PUBLIC_IP}:5000/callback"
 
 DISCORD_API   = "https://discord.com/api/v10"
 OAUTH2_URL    = (
