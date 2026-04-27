@@ -180,35 +180,67 @@
 
     .multiselect-wrap { flex: 1; min-width: 160px; max-width: 260px; position: relative; }
     .multiselect-box {
-      min-height: 36px; padding: 4px 28px 4px 8px;
-      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      min-height: 38px; padding: 5px 32px 5px 10px;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
       border: 1.5px solid var(--border); border-radius: 8px;
       cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      user-select: none;
     }
-    .multiselect-box:focus-within, .multiselect-box.open { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
+    .multiselect-box:hover { border-color: #b0c8e8; }
+    .multiselect-box.open { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
     .multiselect-tag {
       background: var(--accent-soft); color: var(--accent);
-      border-radius: 5px; padding: 2px 6px; font-size: 0.75rem; font-weight: 500;
-      display: flex; align-items: center; gap: 4px;
+      border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500;
+      display: flex; align-items: center; gap: 5px;
+      border: 1px solid rgba(74,127,212,0.18);
     }
-    .multiselect-tag button { background: none; border: none; cursor: pointer; color: var(--accent); padding: 0; font-size: 0.75rem; line-height: 1; }
+    .multiselect-tag button {
+      background: none; border: none; cursor: pointer; color: var(--accent);
+      padding: 0; font-size: 0.9rem; line-height: 1; opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .multiselect-tag button:hover { opacity: 1; }
     .multiselect-placeholder { font-size: 0.82rem; color: #b0c2d8; padding: 2px 4px; }
     .multiselect-dropdown {
-      position: absolute; top: calc(100% + 4px); right: 0; left: 0; z-index: 50;
-      background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(74,127,212,0.12);
-      max-height: 260px; overflow-y: auto; display: none;
+      position: absolute; top: calc(100% + 6px); right: 0; left: 0; z-index: 50;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(74,127,212,0.15);
+      max-height: 220px; overflow-y: auto; display: none;
+      padding: 6px;
     }
-    .multiselect-dropdown.open { display: block; }
+    .multiselect-dropdown.open { display: block; animation: dropIn 0.15s cubic-bezier(.22,.68,0,1.2) both; }
+    @keyframes dropIn { from { opacity:0; transform:translateY(-6px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
     .multiselect-option {
-      padding: 8px 12px; font-size: 0.83rem; cursor: pointer;
-      display: flex; align-items: center; gap: 8px;
-      transition: background 0.15s;
+      padding: 9px 10px; font-size: 0.83rem; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      border-radius: 8px;
+      transition: background 0.12s;
+      user-select: none;
     }
     .multiselect-option:hover { background: var(--accent-soft); }
-    .multiselect-option.selected { color: var(--accent); font-weight: 500; }
-    .multiselect-option input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; }
+    .multiselect-option.selected { background: rgba(74,127,212,0.06); }
+    /* Checkbox custom */
+    .ms-checkbox {
+      width: 16px; height: 16px; flex-shrink: 0;
+      border: 2px solid var(--border); border-radius: 4px;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+      pointer-events: none;
+    }
+    .multiselect-option.selected .ms-checkbox {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .multiselect-option.selected .ms-checkbox::after {
+      content: '';
+      width: 4px; height: 7px;
+      border: 2px solid #fff; border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+      display: block;
+    }
+    .ms-label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; pointer-events: none; }
+    .ms-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
     .card.disabled .fields { opacity: 0.38; pointer-events: none; }
     .card.disabled .card-title { color: var(--muted); }
@@ -617,33 +649,45 @@
     function renderOptions() {
       dropdown.innerHTML = '';
       items.forEach(item => {
+        const isSelected = selected.includes(String(item.id));
         const opt = document.createElement('div');
-        opt.className = 'multiselect-option' + (selected.includes(String(item.id)) ? ' selected' : '');
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = selected.includes(String(item.id));
-        cb.addEventListener('change', () => {
-          if (cb.checked) { if (!selected.includes(String(item.id))) selected.push(String(item.id)); }
-          else { selected = selected.filter(s => s !== String(item.id)); }
-          renderTags(); renderOptions();
-        });
+        opt.className = 'multiselect-option' + (isSelected ? ' selected' : '');
 
-        let label = item.name;
+        // Checkbox custom
+        const cb = document.createElement('div');
+        cb.className = 'ms-checkbox';
+
+        // Label
+        const labelEl = document.createElement('span');
+        labelEl.className = 'ms-label';
         if (colorFn) {
           const hex = colorFn(item);
-          if (hex) label = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${hex};margin-right:4px;flex-shrink:0;"></span>${item.name}`;
+          if (hex) {
+            const dot = document.createElement('span');
+            dot.className = 'ms-color-dot';
+            dot.style.background = hex;
+            labelEl.appendChild(dot);
+          }
         }
-        opt.innerHTML = ``;
-        opt.prepend(cb);
-        const span = document.createElement('span');
-        span.style.cssText = 'flex:1;min-width:0;pointer-events:none;';
-        span.innerHTML = label;
-        opt.appendChild(span);
-        opt.addEventListener('click', e => {
-          if (e.target === cb) return;
-          cb.checked = !cb.checked;
-          cb.dispatchEvent(new Event('change'));
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = item.name;
+        labelEl.appendChild(nameSpan);
+
+        opt.appendChild(cb);
+        opt.appendChild(labelEl);
+
+        // Toute la ligne est cliquable
+        opt.addEventListener('click', () => {
+          const sid = String(item.id);
+          if (selected.includes(sid)) {
+            selected = selected.filter(s => s !== sid);
+          } else {
+            selected.push(sid);
+          }
+          renderTags();
+          renderOptions();
         });
+
         dropdown.appendChild(opt);
       });
     }
