@@ -34,6 +34,8 @@ class TicketModal(discord.ui.Modal):
                 if role:
                     for member in role.members:
                         await thread.add_user(member)
+            
+            await thread.add_user(user)
 
             embed_title = await translate(text="🎫 Ticket", dest_lng=self.language)
             embed_description_first_part = await translate(text="hello !\nThank you for creating a ticket, a staff member will answer shortly\n\n**Reason of the ticket** :", dest_lng=self.language)
