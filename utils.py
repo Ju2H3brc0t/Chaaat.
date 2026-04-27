@@ -51,6 +51,9 @@ DEFAULT_CONFIG = {
             "enabled": False,
             "wait": 0
         },
+        "tickets":{
+            "roles": [],
+        },
         "welcome": {
             "channel_id": 0,
             "enabled": False

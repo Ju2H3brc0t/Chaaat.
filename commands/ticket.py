@@ -22,7 +22,9 @@ class Ticket(commands.Cog):
                               colour=discord.Colour.yellow())
 
         from ui.tickets import TicketLauncher
-        await interaction.response.send_message(embed=embed, view=TicketLauncher())
+        await interaction.channel.send(embed=embed, view=TicketLauncher())
+        button_sent_message = await translate(text="✅ The message with the button has been sent", dest_lng=language)
+        await interaction.response.send_message(button_sent_message)
 
     @ticket_group.command(name="close", description="Close the ticket channel")
     async def close(self, interaction: discord.Interaction):
