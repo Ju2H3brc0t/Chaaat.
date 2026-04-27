@@ -18,37 +18,39 @@ class TicketModal(discord.ui.Modal):
         )
 
     async def on_submit(self, interaction_modal: discord.Interaction):
-        guild = interaction_modal.guild
-        user = interaction_modal.user
+        try:
+            guild = interaction_modal.guild
+            user = interaction_modal.user
         
-        overwrites = {
-            guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            user: discord.PermissionOverwrite(view_channel=True, send_messages=True, attach_files=True),
-            guild.me: discord.PermissionOverwrite(view_channel=True, send_messages=True)
-        }
+            parent_channel = self.category
 
-        channel = await guild.create_text_channel(
-            name=f"ticket-{user.name}",
-            category=self.category,
-            overwrites=overwrites,
-            topic=f"{self.reason.value}"
-        )
+            thread = await parent_channel.create_thread(
+                name=f"ticket-{user.name}",
+                type=discord.ChannelType.private_thread,
+                invitable=False
+            )
         
-        roles_to_mention = self.config['features']['tickets'].get('mention_roles', [])
-        mentions = " ".join([f"<@&{rid}>" for rid in roles_to_mention if rid])
-        
-        embed_title = await translate(text="🎫 Ticket", dest_lng=self.language)
-        embed_description_first_part = await translate(text="hello !\nThank you for creating a ticket, a staff member will answer shortly\n\n**Reason of the ticket** :", dest_lng=self.language)
+            roles = self.config['features']['tickets'].get('roles', [])
 
-        embed = discord.Embed(title=embed_title,
+            for rid in roles:
+                role = guild.get_role(rid)
+                for member in role.members:
+                    await thread.add_user(member)
+
+            embed_title = await translate(text="🎫 Ticket", dest_lng=self.language)
+            embed_description_first_part = await translate(text="hello !\nThank you for creating a ticket, a staff member will answer shortly\n\n**Reason of the ticket** :", dest_lng=self.language)
+
+            embed = discord.Embed(title=embed_title,
                               description=f'{user.mention} {embed_description_first_part} {self.reason.value}',
                               colour=discord.Color.yellow())
 
-        await channel.send(mentions, embed=embed)
+            await thread.send(embed=embed)
 
-        modal_response_first_part = await translate(text="✅ Your ticket has been created :", dest_lng=self.language)
+            modal_response_first_part = await translate(text="✅ Your ticket has been created :", dest_lng=self.language)
 
-        await interaction_modal.response.send_message(f"{modal_response_first_part} {channel.mention}", ephemeral=True)
+            await interaction_modal.response.send_message(f"{modal_response_first_part} {thread.mention}", ephemeral=True)
+        except Exception as e:
+            print(e)
 
 class TicketLauncher(discord.ui.View):
     def __init__(self):
@@ -59,8 +61,7 @@ class TicketLauncher(discord.ui.View):
         config = await load_config(guild_id=interaction.guild.id, auto_create=False)
         language = str(config['features'].get('language'))
         
-        category_id = config['features']['tickets'].get('category_id')
-        category = interaction.guild.get_channel(int(category_id)) if category_id else None
+        category = interaction.channel
 
         m_title = await translate(text="Opening a ticket", dest_lng=language)
         m_label = await translate(text="Reason of the ticket", dest_lng=language)

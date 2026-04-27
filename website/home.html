@@ -266,12 +266,10 @@
   </style>
 </head>
 <body>
-
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
   <div class="loading-text">Loading configuration...</div>
 </div>
-
 <header>
   <div class="brand">
     <div class="brand-icon">
@@ -288,13 +286,10 @@
     Logout
   </button>
 </header>
-
 <main>
   <h1 class="page-title">Dashboard, <em>Chaaat.</em></h1>
   <p class="page-sub">Changes apply directly to your <code style="font-size:0.8rem;background:var(--accent-soft);padding:2px 6px;border-radius:4px;color:var(--accent)">config.yaml</code>.</p>
-
   <div class="grid">
-
     <div class="card disabled" id="card-autodelete">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -323,7 +318,6 @@
         Save
       </button>
     </div>
-
     <div class="card disabled" id="card-birthday">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -366,7 +360,6 @@
         Save
       </button>
     </div>
-
     <div class="card disabled" id="card-bump">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -391,7 +384,6 @@
         Save
       </button>
     </div>
-
     <div class="card disabled" id="card-counting">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -420,7 +412,6 @@
         Save
       </button>
     </div>
-
     <div class="card disabled" id="card-goodbye">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -445,7 +436,6 @@
         Save
       </button>
     </div>
-
     <div class="card disabled" id="card-leveling">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -535,12 +525,8 @@
       </div>
       <div class="fields">
         <div class="field-row">
-          <div><div class="field-label">Tickets category</div><div class="field-key">category_id</div></div>
-          <select class="field-select" id="tickets-category_id"><option value="0">— None —</option></select>
-        </div>
-        <div class="field-row">
-          <div><div class="field-label">Mention roles</div><div class="field-key">mention_roles</div></div>
-          <div class="multiselect-wrap" id="ms-tickets-mention_roles"></div>
+          <div><div class="field-label">Roles</div><div class="field-key">roles</div></div>
+          <div class="multiselect-wrap" id="ms-tickets-roles"></div>
         </div>
       </div>
       <button class="save-btn" onclick="saveFeature('tickets')">
@@ -548,9 +534,6 @@
         Save
       </button>
     </div>
-
-
-
     <div class="card disabled" id="card-welcome">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -723,7 +706,7 @@
     buildMultiSelect('ms-birthday-gift_role',           roles, [], roleColor);
     buildMultiSelect('ms-birthday-gift_temporary_role', roles, [], roleColor);
     buildMultiSelect('ms-member-role_id',               roles, [], roleColor);
-    buildMultiSelect('ms-tickets-mention_roles',        roles, [], roleColor);
+    buildMultiSelect('ms-tickets-roles',                roles, [], roleColor);
   }
 
   function setVal(id, val) {
@@ -859,8 +842,7 @@
     setVal('autodelete-channels_id', ad.channels_id);
 
     const tk = f.tickets || {};
-    setVal('tickets-category_id', tk.category_id);
-    setVal('tickets-mention_roles', tk.mention_roles);
+    setVal('tickets-roles', tk.roles);
   }
 
   async function saveFeature(feature) {
@@ -929,8 +911,7 @@
       };
     } else if (feature === 'tickets') {
       f.tickets = {
-        category_id: Number(getVal('tickets-category_id')) || 0,
-        mention_roles: getVal('tickets-mention_roles')
+        roles: getVal('tickets-roles')
       };
     }
 
