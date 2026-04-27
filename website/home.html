@@ -178,7 +178,7 @@
     }
     .field-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,127,212,0.10); background-color: #fff; }
 
-    .multiselect-wrap { flex: 1; min-width: 120px; max-width: 200px; position: relative; }
+    .multiselect-wrap { flex: 1; min-width: 160px; max-width: 260px; position: relative; }
     .multiselect-box {
       min-height: 36px; padding: 4px 28px 4px 8px;
       background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
@@ -198,7 +198,7 @@
       position: absolute; top: calc(100% + 4px); right: 0; left: 0; z-index: 50;
       background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
       box-shadow: 0 8px 24px rgba(74,127,212,0.12);
-      max-height: 200px; overflow-y: auto; display: none;
+      max-height: 260px; overflow-y: auto; display: none;
     }
     .multiselect-dropdown.open { display: block; }
     .multiselect-option {
@@ -636,8 +636,14 @@
         opt.innerHTML = ``;
         opt.prepend(cb);
         const span = document.createElement('span');
+        span.style.cssText = 'flex:1;min-width:0;pointer-events:none;';
         span.innerHTML = label;
         opt.appendChild(span);
+        opt.addEventListener('click', e => {
+          if (e.target === cb) return;
+          cb.checked = !cb.checked;
+          cb.dispatchEvent(new Event('change'));
+        });
         dropdown.appendChild(opt);
       });
     }
@@ -663,7 +669,7 @@
     wrap.appendChild(box);
     wrap.appendChild(dropdown);
 
-    wrap._getSelected = () => selected.map(Number);
+    wrap._getSelected = () => selected.map(String);
     wrap._setSelected = (ids) => {
       selected = (ids || []).map(String);
       renderTags(); renderOptions();
@@ -714,12 +720,13 @@
     const ms = document.getElementById('ms-' + id);
 
     if (ms) {
-      ms._setSelected(Array.isArray(val) ? val : (val ? [val] : []));
+      const arr = Array.isArray(val) ? val.map(String) : (val ? [String(val)] : []);
+      ms._setSelected(arr);
       return;
     }
     if (!el) return;
     if (el.tagName === 'SELECT') {
-      el.value = val ? String(val) : '0';
+      el.value = (val !== null && val !== undefined && val !== 0) ? String(val) : '0';
       return;
     }
     if (el.type === 'checkbox') { el.checked = !!val; return; }
@@ -731,9 +738,9 @@
     const el = document.getElementById(id);
     const ms = document.getElementById('ms-' + id);
 
-    if (ms) return ms._getSelected ? ms._getSelected() : [];
+    if (ms) return ms._getSelected ? ms._getSelected().map(String) : [];
     if (!el) return null;
-    if (el.tagName === 'SELECT') return el.value;
+    if (el.tagName === 'SELECT') return String(el.value);
     if (el.type === 'checkbox') return el.checked;
     if (el.type === 'number') return el.value === '' ? 0 : Number(el.value);
     return el.value;
@@ -855,63 +862,64 @@
         const inputs = row.querySelectorAll('input[type=number], input[type=text], select');
         const level = inputs[0].value;
         const roleEl = inputs[1];
-        const role = roleEl.tagName === 'SELECT' ? roleEl.value : roleEl.value;
-        if (level && role) rewards[level] = Number(role);
+        const role = roleEl.value;
+        if (level && role) rewards[String(level)] = String(role);
       });
       f.leveling = {
         enabled: document.getElementById('toggle-leveling').checked,
-        announcement_channel_id: Number(getVal('leveling-announcement_channel_id')) || 0,
-        boost_channels:   getVal('leveling-boost_channels'),
-        exclude_channels: getVal('leveling-exclude_channels'),
+        announcement_channel_id: String(getVal('leveling-announcement_channel_id') || '0'),
+        boost_channels:   getVal('leveling-boost_channels').map(String),
+        exclude_channels: getVal('leveling-exclude_channels').map(String),
         rewards_stackable: getVal('leveling-rewards_stackable'),
-        rewards: Object.keys(rewards).length ? rewards : { "0": 0 }
+        rewards: Object.keys(rewards).length ? rewards : { "0": "0" }
       };
     } else if (feature === 'birthday') {
       f.birthday = {
         enabled: document.getElementById('toggle-birthday').checked,
-        announcement_channel_id: Number(getVal('birthday-announcement_channel_id')) || 0,
+        announcement_channel_id: String(getVal('birthday-announcement_channel_id') || '0'),
         gift: {
           enabled: getVal('birthday-gift_enabled'),
-          xp: Number(getVal('birthday-gift_xp')) || 0,
-          role: getVal('birthday-gift_role'),
-          temporary_role: getVal('birthday-gift_temporary_role')
+          xp: String(getVal('birthday-gift_xp') || '0'),
+          role: getVal('birthday-gift_role').map(String),
+          temporary_role: getVal('birthday-gift_temporary_role').map(String)
         }
       };
     } else if (feature === 'counting') {
       f.counting = {
         enabled: document.getElementById('toggle-counting').checked,
-        channel_id: Number(getVal('counting-channel_id')) || 0,
+        channel_id: String(getVal('counting-channel_id') || '0'),
         checkpoints: getVal('counting-checkpoints')
       };
     } else if (feature === 'bump_reminder') {
       f.bump_reminder = {
         enabled: document.getElementById('toggle-bump').checked,
-        channel: Number(getVal('bump-channel')) || 0
+        channel: String(getVal('bump-channel') || '0')
       };
     } else if (feature === 'welcome') {
       f.welcome = {
         enabled: document.getElementById('toggle-welcome').checked,
-        channel_id: Number(getVal('welcome-channel_id')) || 0
+        channel_id: String(getVal('welcome-channel_id') || '0')
       };
     } else if (feature === 'goodbye') {
       f.goodbye = {
         enabled: document.getElementById('toggle-goodbye').checked,
-        channel_id: Number(getVal('goodbye-channel_id')) || 0
+        channel_id: String(getVal('goodbye-channel_id') || '0')
       };
     } else if (feature === 'member_role') {
       f.member_role = {
         enabled: document.getElementById('toggle-member').checked,
-        role_id: getVal('member-role_id')
+        role_id: getVal('member-role_id').map(String)
       };
     } else if (feature === 'message_autodelete') {
       f.message_autodelete = {
         enabled: document.getElementById('toggle-autodelete').checked,
-        wait: Number(getVal('autodelete-wait')) || 0,
-        channels_id: getVal('autodelete-channels_id')
+        wait: String(getVal('autodelete-wait') || '0'),
+        channels_id: getVal('autodelete-channels_id').map(String)
       };
     } else if (feature === 'tickets') {
       f.tickets = {
-        roles: getVal('tickets-roles')
+        category_id: String(getVal('tickets-category_id') || '0'),
+        mention_roles: getVal('tickets-mention_roles').map(String)
       };
     }
 
