@@ -75,11 +75,21 @@ def load_config(guild_id):
     with open(path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f) or DEFAULT_CONFIG
 
+def stringify_ids(obj):
+    """Recursively convert large integers (Discord IDs) to strings to prevent YAML precision loss."""
+    if isinstance(obj, dict):
+        return {k: stringify_ids(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [stringify_ids(i) for i in obj]
+    elif isinstance(obj, int) and obj > 2**32:
+        return str(obj)
+    return obj
+
 def save_config(guild_id, config):
     path = get_config_path(guild_id)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w', encoding='utf-8') as f:
-        yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
+        yaml.dump(stringify_ids(config), f, allow_unicode=True, default_flow_style=False)
 
 @app.route("/")
 def index():
