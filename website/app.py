@@ -23,7 +23,8 @@ app.secret_key = os.getenv("APP_SECRET_KEY")
 
 CLIENT_ID     = os.getenv("DISCORD_CLIENT_ID")
 CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
-REDIRECT_URI  = f"http://{PUBLIC_IP}:5000/callback"
+REDIRECT_URI  = f"http://localhost:5000/callback"
+#REDIRECT_URI  = f"http://{PUBLIC_IP}:5000/callback"
 
 DISCORD_API   = "https://discord.com/api/v10"
 OAUTH2_URL    = (
@@ -184,6 +185,19 @@ def guild_roles(guild_id):
     ]
     roles.sort(key=lambda ro: ro["name"].lower())
     return jsonify(roles)
+
+@app.route("/api/bot-guilds")
+def bot_guilds():
+    if "guilds" not in session:
+        return jsonify({"error": "Non connecté"}), 401
+
+    r = requests.get(f"{DISCORD_API}/users/@me/guilds",
+        headers={"Authorization": f"Bot {BOT_TOKEN}"})
+    if not r.ok:
+        return jsonify([])
+
+    bot_guild_ids = {g["id"] for g in r.json()}
+    return jsonify(list(bot_guild_ids))
 
 @app.route("/api/config/<guild_id>", methods=["GET"])
 def get_config(guild_id):

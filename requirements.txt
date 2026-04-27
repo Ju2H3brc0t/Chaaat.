@@ -18,11 +18,13 @@ flask-core==2.9.0
 flask-cors==6.0.2
 frozenlist==1.8.0
 greenlet==3.4.0
+gunicorn==25.3.0
 idna==3.13
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 multidict==6.7.1
+packaging==26.2
 propcache==0.4.1
 psycopg2==2.9.12
 psycopg2-binary==2.9.12
