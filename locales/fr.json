@@ -1,6 +1,7 @@
 {
     "✅ Your birthday has been registered as {date}.": "✅ Ton anniversaire a été enregistré au {date}.",
     "🧩 This feature is disabled on this server.": "🧩 Cette fonctionalité est désactivée sur ce serveur.",
+    "⏳ This command is deprecated, use the online configuration panel instead...": "⏳ Cette commande est obsolète, utilisez plutôt le panneau de configuration en ligne...",
     "⚙️ Server Configuration": "⚙️ Configuration du Serveur",
     "⚠️ This command directly returns the content of the yaml file associated with this server, you can edit it via the `/config edit` command at your own risk.\n\nHere is the bot configuration for this server :": "⚠️ Cette commande renvoie directement le contenu du fichier yaml associé a ce serveur, vous pouvez l'éditer avec la commande `/config edit` a vos risques et périls.\n\nVoici la configuration du bot pour ce serveur :",
     "⚠️ Config file not found for this server.": "⚠️ Fichier de configuration manquant pour ce serveur",
