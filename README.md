@@ -1,106 +1,88 @@
-# 🤖 Chaaat. - Documentation
+# Chaaat.
 
-## 🧩 Presentation
-
-Originally designed for a single specific server, this bot is now capable of being on several different Discord servers thanks to a dedicated configuration system. This bot is hosted and maintained voluntarily by a single person in their free time, however you are free to take over the code or add the bot to your server.
-
-## ⚙️ Features
-
-### 🛠️ Technical features
-
-#### 🔧 Dynamic configuration
-
- - Each server has a dedicated configuration folder: 
- `server_configs/<guild_id>/config.yaml`
-
- - The `config.yaml` file contains the configuration of the various features.
-
- - A slash command (`/config edit`) allows you to modify your server configuration.
-
- - A command (`/config show`) allows you to display the current configuration in a readable embed.
-
-#### 💬 Automatic translation
-
- - The bot now have locales, used to translate every message he send depending on the configuration of the server
-
- - If the bot don't have locales for a language, he will automatically translate the text using Google Translate (not recommended, because translation from Google Transalte are sometime false or a bit weird)
-
-#### 💾 Data storage
-
- - Server-specific data (like score counting) is stored in `server_configs/<guild_id>/data.json`.
-
- - User-specific data (like current level) is stored in a SQLite database (`database.db`)
-
- - Automatic read/write at each affected event.
-
-#### 🧑‍💻 Developpers features
-
- - A `/dev` command group allows you to do things like update the bot from Github, reload cogs and load new ones, or shutdown the bot itself.
-
-#### 🔨 Server moderator features
-
- - A `/mod` command group allow you to timeout, kick or ban peoples from your server with a reason and an automatic message sended to the targeted person.
+A Discord bot originally built for a single server, now capable of running across multiple servers through a per-server configuration system. Hosted and maintained by one person in their free time — feel free to fork or self-host.
 
 ---
 
-### 🎮 Practical features
+## Features
 
-- A counting feature allows members to take turns counting in a specific channel.
-    The bot:
-    - verifies that the numerical sequence is correct,
-    - prevents duplicate messages from the same user,
-    - optionally resets the counter on mistakes,
-    - saves progress in `data.json`.
+### Leveling
+Rewards active members with XP for each message sent. Automatically levels up users, assigns level-based roles (stackable or replacing), and announces level-ups in a dedicated channel. Supports boosted and excluded channels. Commands: `/level rank`, `/level leaderboard`.
 
-- A leveling system reward members for being active.
-    The bot:
-    - grant experience points for each messages sent,
-    - supports boosted and excluded channels,
-    - automatically levels up users when enought XP is reached,
-    - assigns level-based roles defined in the server configuration,
-    - can stack role or replace the previous one,
-    - sends a level-up announcement embed in a dedicated channel,
-    - can send information about your current level with `/level rank`
-    - can send you the leaderboard with `/level leaderboard`
+### Birthdays
+Checks daily for members whose birthday matches the current date, sends an announcement, and optionally gifts XP, a role, and a temporary role for the day.
 
-- A fully automated system to celebrate member's birthday.
-    The bot:
-    - Check everyday for user's birthday who match the current day,
-    - Send a announcement in a dedicated channel,
-    - Gift some experience, role and temporary role, for the day.
+### Counting
+Members take turns counting in a dedicated channel. The bot validates the sequence, prevents consecutive messages from the same user, and saves progress. Optionally resets on mistakes.
 
-- A feature for automatically adding on or multiple "member" role when a user join the server, based on the server configuration
+### Welcome & Goodbye
+Sends a message in a configured channel when a member joins or leaves the server.
 
-- A bump reminder feature who detect messages from Distboard and then remind staff to bump 2 hours after.
+### Member Role
+Automatically assigns one or more roles when a new member joins.
 
-- A message autodeletion feature in some channels to keep them clean.
+### Bump Reminder
+Detects Disboard bump messages and sends a reminder to staff 2 hours later.
+
+### Auto-delete
+Automatically deletes messages in specified channels after a configurable delay, to keep them clean.
+
+### Tickets
+Creates and manages support tickets in a dedicated category, with optional role mentions.
 
 ---
 
-## 💻 Useful bash command
+## Configuration
 
-### 🔁 Update the bot to his last stable version
+Each server has its own config file at `server_configs/<guild_id>/config.yaml`.
 
-```bash
-cd "path/to/bot"
-git checkout main
-git pull origin main
-```
+The web dashboard (Flask app on port 5000) provides a visual interface to edit settings after signing in with Discord. Alternatively, use the in-bot slash commands:
 
-### 🚀 Run the bot in background
+- `/config edit` — edit the server configuration
+- `/config show` — display the current configuration as an embed
 
-```bash
-nohup python3 main.py > bot.log 2>&1 &
-```
+Server-specific data (counting scores, etc.) is stored in `server_configs/<guild_id>/data.json`.  
+User-specific data (levels, XP) is stored in a SQLite database at `database.db`.
 
-### 📦 Install dependencies
+---
 
+## Localization
+
+The bot sends messages in the language configured per server. If no locale is available for a given language, it falls back to Google Translate — though results may occasionally be inaccurate.
+
+---
+
+## Commands
+
+| Group | Command | Description |
+|---|---|---|
+| `/level` | `rank` | Show your current level and XP |
+| `/level` | `leaderboard` | Show the server leaderboard |
+| `/mod` | `timeout` / `kick` / `ban` | Moderation actions with reason and DM notification |
+| `/dev` | — | Pull updates from GitHub, reload/load cogs, shut down the bot |
+| `/config` | `edit` / `show` | Edit or display the server configuration |
+
+---
+
+## Setup
+
+**Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-If you have to force the update:
-
+**Run in background**
 ```bash
-pip install -U -r requirements.txt
+nohup python3 main.py > bot.log 2>&1 &
+```
+
+**Update to latest stable version**
+```bash
+git checkout main
+git pull origin main
+```
+
+**Launch the web interface**
+```bash
+gunicorn -w 4 -b 0.0.0.0:5000 website.app:app
 ```

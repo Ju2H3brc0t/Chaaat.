@@ -1,4 +1,5 @@
 from utils import init_db
+from ui.tickets import TicketLauncher
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -32,9 +33,8 @@ async def on_ready():
     if not initial_extensions:
         try:
             await init_db()
-            print(f'📦 Database charged successfully')
         except Exception as e:
-            print(f'⚠️ Failed to load database: {e}')
+            print(f"⚠️ Failed to load database: {e}")
             traceback.print_exc()
         
         for folder in folders:
@@ -50,6 +50,9 @@ async def on_ready():
                 print(f'⚠️ Failed to load extension {extension}: {e}.')
                 traceback.print_exc()
         
+        client.add_view(TicketLauncher())
+        print("📩 Ticket view registered (Persistent)")
+
         try:
             synced = await client.tree.sync()
             print(f'🌐 Synced {len(synced)} command(s)')
