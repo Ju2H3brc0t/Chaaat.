@@ -268,20 +268,25 @@ class OnMessage(commands.Cog):
             "hex": lambda x: int(str(int(x)), 16)
         }
 
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        data = await load_data(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language'))
+        data_path = f'server_configs/{message.guild.id}/data.json'
+
+        counting_enabled = bool(config['features']['counting'].get('enabled'))
+        channel_id = int(config['features']['counting'].get('channel_id'))
+        checkpoints = bool(config['features']['counting'].get('checkpoints'))
+        raw_count = data.get('counting', None)
+        current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
+        raw_user = data.get('last_user_id')
+        last_user_id = int(raw_user) if raw_user is not None else None
+
         if counting_enabled and channel_id == message.channel.id and not message.author.bot:
             async with self.counting_lock:
                 config = await load_config(guild_id=message.guild.id, auto_create=True)
                 language = str(config['features'].get('language'))
                 data = await load_data(guild_id=message.guild.id, auto_create=True)
                 data_path = f'server_configs/{message.guild.id}/data.json'
-
-                counting_enabled = bool(config['features']['counting'].get('enabled'))
-                channel_id = int(config['features']['counting'].get('channel_id'))
-                checkpoints = bool(config['features']['counting'].get('checkpoints'))
-                raw_count = data.get('counting', None)
-                current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
-                raw_user = data.get('last_user_id')
-                last_user_id = int(raw_user) if raw_user is not None else None
 
                 if current_count == None:
                     unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
