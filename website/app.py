@@ -60,6 +60,7 @@ DEFAULT_CONFIG = {
             "rewards_stackable": False
         },
         "member_role": {"enabled": False, "role_id": []},
+        "linked_roles": {},
         "message_autodelete": {"channels_id": [], "enabled": False, "wait": 0},
         "welcome": {"channel_id": 0, "enabled": False}
     }
