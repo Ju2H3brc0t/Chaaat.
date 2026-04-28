@@ -517,6 +517,38 @@
       </button>
     </div>
 
+    <div class="card" id="card-linked">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <div class="card-icon icon-purple">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Linked Roles</div>
+            <div class="card-desc">features.linked_roles</div>
+          </div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="section-label" style="margin-bottom:8px;">Parent role → Child roles (triggers parent)</div>
+        <div id="linked-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button type="button" id="add-linked-btn" onclick="addLinkedRule()" style="
+          margin-top:6px;width:100%;padding:8px;
+          background:none;border:1.5px dashed var(--border);border-radius:8px;
+          color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.82rem;
+          cursor:pointer;transition:all 0.2s;
+          display:flex;align-items:center;justify-content:center;gap:6px;"
+          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          + Add a rule
+        </button>
+      </div>
+      <button class="save-btn" onclick="saveFeature('linked_roles')">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
+      </button>
+    </div>
+
     <div class="card disabled" id="card-member">
       <div class="card-header">
         <div class="card-title-wrap">
@@ -892,6 +924,14 @@
 
     const tk = f.tickets || {};
     setVal('tickets-roles', tk.roles);
+
+    const lr = f.linked_roles || {};
+    const linkedList = document.getElementById('linked-list');
+    linkedList.innerHTML = '';
+    linkedCount = 0;
+    Object.entries(lr).forEach(([parentId, children]) => {
+      addLinkedRule(parentId, children);
+    });
   }
 
   async function saveFeature(feature) {
@@ -962,6 +1002,19 @@
       f.tickets = {
         roles: getVal('tickets-roles').map(String)
       };
+    } else if (feature === 'linked_roles') {
+      const linked = {};
+      document.querySelectorAll('#linked-list > div[id^="linked-"]').forEach(row => {
+        const parentSel = row.querySelector('[data-linked-parent]');
+        const msWrap = row.querySelector('.multiselect-wrap');
+        if (!parentSel || !msWrap) return;
+        const parentId = parentSel.value;
+        const children = msWrap._getSelected ? msWrap._getSelected() : [];
+        if (parentId && children.length > 0) {
+          linked[parentId] = children;
+        }
+      });
+      f.linked_roles = linked;
     }
 
     try {
@@ -1016,6 +1069,62 @@
   }
 
   function removeReward(id) { document.getElementById(id)?.remove(); }
+
+  let linkedCount = 0;
+
+  function addLinkedRule(parentId = '', childIds = []) {
+    linkedCount++;
+    const id = 'linked-' + linkedCount;
+    const row = document.createElement('div');
+    row.id = id;
+    row.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;';
+
+    const parentOptions = discordRoles.map(r =>
+      `<option value="${r.id}" ${String(r.id) === String(parentId) ? 'selected' : ''}>${r.name}</option>`
+    ).join('');
+
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    header.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div class="field-label" style="margin-bottom:4px;">Parent role</div>
+        <select class="field-select" style="width:100%;max-width:none;" data-linked-parent>
+          <option value="">— Role —</option>
+          ${parentOptions}
+        </select>
+      </div>
+      <button type="button" onclick="removeLinkedRule('${id}')" style="
+        background:none;border:none;cursor:pointer;padding:4px;margin-top:18px;
+        color:var(--muted);transition:color 0.2s;flex-shrink:0;"
+        onmouseover="this.style.color='var(--danger)'"
+        onmouseout="this.style.color='var(--muted)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>`;
+
+    const childWrap = document.createElement('div');
+    childWrap.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+    const childLabel = document.createElement('div');
+    childLabel.className = 'field-label';
+    childLabel.textContent = 'Child roles (any of these adds parent)';
+    childWrap.appendChild(childLabel);
+
+    const msId = 'ms-linked-children-' + linkedCount;
+    const msWrap = document.createElement('div');
+    msWrap.className = 'multiselect-wrap';
+    msWrap.id = msId;
+    msWrap.style.maxWidth = '100%';
+    childWrap.appendChild(msWrap);
+
+    row.appendChild(header);
+    row.appendChild(childWrap);
+    document.getElementById('linked-list').appendChild(row);
+
+    buildMultiSelect(msId, discordRoles, childIds, roleColor);
+  }
+
+  function removeLinkedRule(id) { document.getElementById(id)?.remove(); }
 
   async function logout() {
     await fetch('/api/logout', { credentials: 'include' });

@@ -35,13 +35,14 @@ DEFAULT_CONFIG = {
         "leveling": {
             "announcement_channel_id": 0,
             "boost_channels": [],
-            "enabled": True,
+            "enabled": False,
             "exclude_channels": [],
             "rewards": {
                 "0": 0
             },
             "rewards_stackable": False
         },
+        "linked_roles": {},
         "member_role": {
             "enabled": False,
             "role_id": []
