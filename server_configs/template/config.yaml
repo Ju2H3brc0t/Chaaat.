@@ -1,6 +1,6 @@
 features:
   birthday:
-    announcement_channel_id: 0 # Where should the bot anounce birthday's
+    announcement_channel_id: 123456789012345678 # Where should the bot anounce birthday's
     enabled: false # A feature to celebrate the birthday of a member 
     gift:
       enabled: false
@@ -8,24 +8,28 @@ features:
       temporary_role: []
       xp: 0
   bump_reminder:
-    channel: 0
+    channel: 123456789012345678
     enabled: false # A reminder for Disboard /bump command
   counting:
-    channel_id: 0
+    channel_id: 123456789012345678
     checkpoints: false # A checkpoint every 100 messages; the bot will react with "🚩" at each checkpoint.
     enabled: false # A game where users must send numbers in order and sequentially without anyone making a mistake or participating twice.
   goodbye:
-    channel_id: 0
+    channel_id: 123456789012345678
     enabled: false
   language: en # The language used by the bot
   leveling:
-    announcement_channel_id: 0 # Where should the bot announce new levels
+    announcement_channel_id: 123456789012345678 # Where should the bot announce new levels
     boost_channels: [] # 1 message = 2xp for channels in the list
-    enabled: true # 1 message = 1xp
+    enabled: false # 1 message = 1xp
     exclude_channels: [] # 1 message = 0xp for channels in the list
     rewards:
-      0: 0 # level: reward (role id)
+      123456789012345678: 123456789012345678 # level: reward (role id)
     rewards_stackable: false # If the bot has to remove the previous rewarded role
+  linked_roles: # The bot will add/remove automatically childrens roles in the parent role is added/removed
+    "123456789012345678":
+     - "123456789012345678"
+     - "123456789012345678"
   member_role:
     enabled: false # A role that will be added to each new user
     role_id: []
@@ -36,6 +40,6 @@ features:
   tickets:
     roles: [] # Roles able to manage tickets
   welcome:
-    channel_id: 0
+    channel_id: 123456789012345678
     enabled: false
     
