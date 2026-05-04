@@ -248,41 +248,41 @@ class OnMessage(commands.Cog):
                     await channel.send(embed=embed)
 
     async def counting(self, message):
-        s = SimpleEval()
-        s.names = {
-            "pi": Decimal("3.14159265358979323846"),
-            "π": Decimal("3.14159265358979323846"),
-            "e": Decimal("2.71828182845904523536"),
-            "tau": Decimal("6.28318530717958647692"),
-            "τ": Decimal("6.28318530717958647692"),
-            "phi": Decimal("1.61803398874989484820"),
-            "φ": Decimal("1.61803398874989484820"),
-        }
-        s.functions = {
-            "sqrt": math.sqrt,
-            "abs": abs,
-            "fact": math.factorial,
-            "cos": math.cos,
-            "sin": math.sin,
-            "bin": lambda x: int(str(int(x)), 2),
-            "hex": lambda x: int(str(int(x)), 16)
-        }
+        async with self.counting_lock:
+            s = SimpleEval()
+            s.names = {
+                "pi": Decimal("3.14159265358979323846"),
+                "π": Decimal("3.14159265358979323846"),
+                "e": Decimal("2.71828182845904523536"),
+                "tau": Decimal("6.28318530717958647692"),
+                "τ": Decimal("6.28318530717958647692"),
+                "phi": Decimal("1.61803398874989484820"),
+                "φ": Decimal("1.61803398874989484820"),
+            }
+            s.functions = {
+                "sqrt": math.sqrt,
+                "abs": abs,
+                "fact": math.factorial,
+                "cos": math.cos,
+                "sin": math.sin,
+                "bin": lambda x: int(str(int(x)), 2),
+                "hex": lambda x: int(str(int(x)), 16)
+            }
 
-        config = await load_config(guild_id=message.guild.id, auto_create=True)
-        data = await load_data(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
-        data_path = f'server_configs/{message.guild.id}/data.json'
+            config = await load_config(guild_id=message.guild.id, auto_create=True)
+            data = await load_data(guild_id=message.guild.id, auto_create=True)
+            language = str(config['features'].get('language'))
+            data_path = f'server_configs/{message.guild.id}/data.json'
 
-        counting_enabled = bool(config['features']['counting'].get('enabled'))
-        channel_id = int(config['features']['counting'].get('channel_id'))
-        checkpoints = bool(config['features']['counting'].get('checkpoints'))
-        raw_count = data.get('counting', None)
-        current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
-        raw_user = data.get('last_user_id')
-        last_user_id = int(raw_user) if raw_user is not None else None
+            counting_enabled = bool(config['features']['counting'].get('enabled'))
+            channel_id = int(config['features']['counting'].get('channel_id'))
+            checkpoints = bool(config['features']['counting'].get('checkpoints'))
+            raw_count = data.get('counting', None)
+            current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
+            raw_user = data.get('last_user_id')
+            last_user_id = int(raw_user) if raw_user is not None else None
 
-        if counting_enabled and channel_id == message.channel.id and not message.author.bot:
-            async with self.counting_lock:
+            if counting_enabled and channel_id == message.channel.id and not message.author.bot:
                 config = await load_config(guild_id=message.guild.id, auto_create=True)
                 language = str(config['features'].get('language'))
                 data = await load_data(guild_id=message.guild.id, auto_create=True)
@@ -327,7 +327,7 @@ class OnMessage(commands.Cog):
                     data['last_user_id'] = message.author.id
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
-                elif not is_valid or message.author.id == last_user_id:
+                elif not is_valid and message.author.id != last_user_id:
                     await message.add_reaction("❌")
                     if checkpoints:
                         if is_checkpoint:
@@ -351,6 +351,9 @@ class OnMessage(commands.Cog):
                         data['last_user_id'] = None
                         with open(data_path, 'w') as f:
                             json.dump(data, f, indent=4)
+                elif message.author.id == last_user_id:
+                    same_user_message = await translate(text="You can't count twice in a row.\n-# Next number is {expected_count}.", dest_lng=language, expected_count=current_count+1)
+                    await message.channel.send(f"{message.author.mention}, {same_user_message}")
                 else:
                     await message.add_reaction("❓")
                     unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
