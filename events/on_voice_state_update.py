@@ -6,26 +6,19 @@ import time
 class OnVoiceStateUpdate(commands.Cog):
     def __init__(self, client):
         self.client = client
-        # { (guild_id, user_id): timestamp de début de session éligible }
         self._voice_join_times: dict[tuple[int, int], float] = {}
         self.voice_xp_loop.start()
 
     def cog_unload(self):
         self.voice_xp_loop.cancel()
 
-    # -------------------------------------------------------------------------
-    # Helpers
-    # -------------------------------------------------------------------------
-
     def _is_afk(self, member: discord.Member) -> bool:
-        """Mute OU deafened (self ou serveur) — toujours actif."""
         v = member.voice
         if not v:
             return False
         return v.self_mute or v.mute or v.self_deaf or v.deaf
 
     def _is_eligible_for_xp(self, member: discord.Member) -> bool:
-        """Retourne True si le membre peut gagner de l'XP vocal en ce moment."""
         if member.bot:
             return False
         v = member.voice
@@ -34,11 +27,7 @@ class OnVoiceStateUpdate(commands.Cog):
         if self._is_afk(member):
             return False
         humans = [m for m in v.channel.members if not m.bot]
-        return len(humans) >= 1
-
-    # -------------------------------------------------------------------------
-    # Listener principal
-    # -------------------------------------------------------------------------
+        return len(humans) >= 2
 
     @commands.Cog.listener()
     async def on_voice_state_update(
@@ -58,24 +47,19 @@ class OnVoiceStateUpdate(commands.Cog):
 
         key = (member.guild.id, member.id)
 
-        # — Quitte ou change de salon → clôturer XP
         if before.channel is not None and (after.channel is None or before.channel != after.channel):
             if key in self._voice_join_times:
                 elapsed = time.time() - self._voice_join_times.pop(key)
                 await self._grant_voice_xp(member, elapsed, config)
 
-        # — Devient mute/deafened → stopper XP
         if after.channel is not None and self._is_afk(member):
             if key in self._voice_join_times:
                 elapsed = time.time() - self._voice_join_times.pop(key)
                 await self._grant_voice_xp(member, elapsed, config)
-
-        # — Reprend (unmute/undeafen) → reprendre XP
         if after.channel is not None and not self._is_afk(member):
             if self._is_eligible_for_xp(member) and key not in self._voice_join_times:
                 self._voice_join_times[key] = time.time()
 
-        # — Quelqu'un rejoint le salon → démarrer les timers des autres éligibles
         if after.channel is not None:
             humans_after = [m for m in after.channel.members if not m.bot]
             if len(humans_after) >= 2:
@@ -86,7 +70,6 @@ class OnVoiceStateUpdate(commands.Cog):
                     if self._is_eligible_for_xp(m) and k not in self._voice_join_times:
                         self._voice_join_times[k] = time.time()
 
-        # — Quelqu'un quitte → salon tombe à 1 humain → clôturer les autres
         if before.channel is not None:
             humans_before = [m for m in before.channel.members if not m.bot]
             if len(humans_before) < 2:
@@ -97,10 +80,6 @@ class OnVoiceStateUpdate(commands.Cog):
                     if k in self._voice_join_times:
                         elapsed = time.time() - self._voice_join_times.pop(k)
                         await self._grant_voice_xp(m, elapsed, config)
-
-    # -------------------------------------------------------------------------
-    # Boucle XP — tick toutes les secondes, attribue selon l'intervalle configuré
-    # -------------------------------------------------------------------------
 
     @tasks.loop(seconds=1)
     async def voice_xp_loop(self):
@@ -126,7 +105,6 @@ class OnVoiceStateUpdate(commands.Cog):
                 self._voice_join_times.pop(key, None)
                 continue
 
-            # Si le membre est devenu inéligible entre deux ticks
             if not self._is_eligible_for_xp(member):
                 elapsed = now - self._voice_join_times.pop(key)
                 await self._grant_voice_xp(member, elapsed, config)
@@ -143,16 +121,11 @@ class OnVoiceStateUpdate(commands.Cog):
     async def before_voice_xp_loop(self):
         await self.client.wait_until_ready()
 
-    # -------------------------------------------------------------------------
-    # Attribution XP + level-up
-    # -------------------------------------------------------------------------
-
     async def _grant_voice_xp(self, member: discord.Member, elapsed_seconds: float, config: dict):
         try:
             language  = str(config['features'].get('language'))
             interval  = int(config['features']['leveling'].get('voice_xp_interval_seconds', 120))
 
-            # 1 XP par intervalle complet, rien si moins de la moitié de l'intervalle
             xp_gain = 1 if elapsed_seconds >= (interval * 0.5) else 0
 
             if xp_gain <= 0:
@@ -206,7 +179,6 @@ class OnVoiceStateUpdate(commands.Cog):
                         await channel.send(embed=embed)
 
         except Exception as e:
-            print(f"[VoiceXP] Erreur : {e}")
             import traceback
             traceback.print_exc()
 
