@@ -15,6 +15,9 @@ Checks daily for members whose birthday matches the current date, sends an annou
 ### Counting
 Members take turns counting in a dedicated channel. The bot validates the sequence, prevents consecutive messages from the same user, and saves progress.
 
+### Partnership
+A command to format messages during partnerships with a mention, the ad, then a representative and a manager in an embed
+
 ### Welcome & Goodbye
 Sends a message in a configured channel when a member joins or leaves the server.
 
@@ -55,6 +58,7 @@ The bot sends messages in the language configured per server. If no locale is av
 |---|---|---|
 | `/level` | `rank` | Show your current level and XP |
 | `/level` | `leaderboard` | Show the server leaderboard |
+|`/partnership`| — | Sending advertisements from another server during partnerships with specific formatting (mention, representative, manager) |
 | `/staff` | `warn` / `timeout` / `kick` / `ban` | Moderation actions with reason and DM notification |
 |`/misc`| `ping` / `say` | Random miscellaneous commands that isn't really useful |
 | `/dev` | — | Pull updates from GitHub, reload/load cogs, shut down the bot |
