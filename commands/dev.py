@@ -12,7 +12,7 @@ class Dev(commands.Cog):
     async def get_devs_ids(self):
         env_devs = os.getenv('DEVS_USER_IDS')
         if not env_devs:
-            print("‼️ Error: OWNER_USER_ID environment variable not set.")
+            print("‼️ Error: DEVS_USER_ID environment variable not set.")
             devs_ids = []
         else:
             devs_ids = [int(uid.strip()) for uid in env_devs.split(',')]
@@ -20,7 +20,7 @@ class Dev(commands.Cog):
 
     async def shutdown(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language'))
+        language = str(config['generals'].get('language'))
 
         response_text = await translate(text="🪫 Shutting down...", dest_lng=language)
         
@@ -30,7 +30,7 @@ class Dev(commands.Cog):
     
     async def update(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language'))
+        language = str(config['generals'].get('language'))
 
         try:
             subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
@@ -49,7 +49,7 @@ class Dev(commands.Cog):
     
     async def reload(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language'))
+        language = str(config['generals'].get('language'))
 
         folders = ['commands', 'events']
         extensions = []
@@ -110,16 +110,16 @@ class Dev(commands.Cog):
         app_commands.Choice(name="Reload", value="reload")
     ])
     async def command(self, interaction: discord.Interaction, action: str):
-        config = await load_config(guild_id=interaction.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
+        await interaction.response.defer(ephemeral=True)
+        
+        config = await load_config(guild_id=interaction.guild_id, auto_create=True)
+        language = str(config['generals'].get('language'))
 
         refused_text = await translate(text="⛔️ You do not have permission to use this command.", dest_lng=language)
 
         if interaction.user.id not in await self.get_devs_ids():
             await interaction.response.send_message(refused_text, ephemeral=True)
             return
-
-        await interaction.response.defer(ephemeral=True)
 
         if action == "stop":
             await self.shutdown(interaction)

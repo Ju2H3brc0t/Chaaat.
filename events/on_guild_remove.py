@@ -9,7 +9,17 @@ class OnGuildRemove(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        if os.path.exists(f'server_configs/{guild.id}'): shutil.rmtree(f'server_configs/{guild.id}')
+        if not guild or not guild.id:
+            return
+
+        target_path = f'server_configs/{guild.id}'
+
+        if os.path.exists(target_path):
+            try:
+                shutil.rmtree(target_path)
+            except OSError:
+                pass
+
         await remove_guild_from_db(guild_id=guild.id)
 
 async def setup(client):

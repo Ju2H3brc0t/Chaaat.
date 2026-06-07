@@ -8,41 +8,57 @@ class OnMemberJoin(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_join(self, member):
-
         config = await load_config(guild_id=member.guild.id, auto_create=True)
-        language = config['features'].get('language', 'en')
+        language = config['generals'].get('language', 'en')
 
         await add_users_to_db(member.id, member.guild.id)
 
-        member_enabled = bool(config['features']['member_role'].get('enabled'))
+        member_enabled = bool(config['features']['member_roles'].get('enabled'))
         welcome_enabled = bool(config['features']['welcome'].get('enabled'))
-        channel_id = int(config['features']['welcome'].get('channel_id'))
 
-        if member_enabled is True:
-            for role_id in config['features']['member_role'].get('role_id', []):
+        if member_enabled:
+            for role_id in config['features']['member_roles'].get('roles_ids', []):
                 role = member.guild.get_role(int(role_id))
                 if role is not None:
-                    await member.add_roles(role)
+                    try:
+                        await member.add_roles(role)
+                    except discord.Forbidden:
+                        pass
 
-        if welcome_enabled is True:
+        if welcome_enabled:
+            channel_id = int(config['features']['welcome'].get('announcement_channel_id'))
+            
             channel = self.client.get_channel(channel_id)
+            if not channel:
+                try:
+                    channel = await self.client.fetch_channel(channel_id)
+                except discord.HTTPException:
+                    return
 
             embed_title = await translate(text="Welcome !", dest_lng=language)
-            embed_description_first_part = await translate(text="Hello", dest_lng=language)
-            embed_description_second_part = await translate(text=", welcome to", dest_lng=language)
-            embed_description_third_part = await translate(text=f"The server now have", dest_lng=language)
-            embed_description_fourth_part = await translate(text="members", dest_lng=language)
-
+            
+            config_text = config['features']['welcome'].get('text')
+            translated_text = await translate(text=config_text, dest_lng=language)
+            
+            embed_description = (
+                translated_text
+                .replace("{member}", member.mention)
+                .replace("{guild}", member.guild.name)
+                .replace("{count}", str(member.guild.member_count))
+            )
 
             embed = discord.Embed(
                 title=embed_title,
-                description=f'{embed_description_first_part} {member.mention}{embed_description_second_part} {member.guild.name} !\n{embed_description_third_part} {member.guild.member_count} {embed_description_fourth_part}',
+                description=embed_description,
                 color=discord.Color.teal(),
-                timestamp=discord.utils.utcnow())
-            
+                timestamp=discord.utils.utcnow()
+            )
             embed.set_thumbnail(url=member.display_avatar.url)
             
-            await channel.send(embed=embed)
+            try:
+                await channel.send(embed=embed)
+            except discord.Forbidden:
+                pass
 
 async def setup(client):
     await client.add_cog(OnMemberJoin(client))

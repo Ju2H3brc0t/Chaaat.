@@ -76,6 +76,7 @@ async def init_db():
         "xp": "INTEGER DEFAULT 0",
         "level": "INTEGER DEFAULT 0",
         "birthday": "TEXT",
+        "previous_birthday": "INTEGER",
         "previous_temporary_gift": "INTEGER",
     }
 
@@ -203,6 +204,9 @@ async def translate(text: str, dest_lng: str, **kwargs):
 
     if template:
         return template.format(**kwargs) if kwargs else template
+    
+    if kwargs:
+        text = text.format(**kwargs)
     
     result = GoogleTranslator(source='en', target=dest_lng).translate(text=text)
     return result

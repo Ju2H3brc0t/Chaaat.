@@ -12,7 +12,7 @@ class Birthday(commands.Cog):
     @app_commands.describe(date="Your birthday in DD/MM format")
     async def birthday(self, interaction: discord.Interaction, date: str):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language'))
+        language = str(config['generals'].get('language'))
 
         birthday_enabled = bool(config['features']['birthday'].get('enabled'))
 

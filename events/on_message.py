@@ -3,11 +3,13 @@ import discord
 from discord.ext import commands
 from simpleeval import SimpleEval
 from decimal import Decimal
+import decancer_py as decancer
 import requests
 import asyncio
 import json
 import math
 import os
+import re
 
 class OnMessage(commands.Cog):
     def __init__(self, client):
@@ -20,6 +22,102 @@ class OnMessage(commands.Cog):
     async def cog_load(self):
         self.evaluator = SimpleEval()
     
+    async def automod_words(self, message, config, language):
+        banned_words = config['features']['automod'].get('banned_words', [])
+        if not banned_words:
+            return False
+
+        decancered_content = str(decancer.parse(message.content)).lower()
+
+        for word in banned_words:
+            pattern = r'\b' + re.escape(word.lower()) + r'\b'
+            if re.search(pattern, decancered_content):
+                try:
+                    await message.delete()
+                    
+                    alert_text = await translate(text="⚠️ Your message contained a prohibited word and has been deleted.", dest_lng=language)
+                    await message.channel.send(f"{message.author.mention}, {alert_text}", delete_after=5)
+                    return True
+                except discord.Forbidden:
+                    pass
+        return False
+
+    async def automod_links(self, message, config, language):
+        links_config = config['features']['automod'].get('banned_links', {})
+        
+        filter_all = bool(links_config.get('all', False))
+        filter_discord = bool(links_config.get('discord_invites', False))
+        custom_blacklist = links_config.get('others', [])
+
+        urls = re.findall(r'(https?://[^\s]+)', message.content.lower())
+        if not urls:
+            return False
+
+        trigger_link = False
+
+        if filter_all:
+            trigger_link = True
+        elif filter_discord:
+            for url in urls:
+                if "discord.gg" in url or "discord.com/invite" in url:
+                    trigger_link = True
+                    break
+
+        if not trigger_link and custom_blacklist:
+            for url in urls:
+                if any(domain.lower() in url for domain in custom_blacklist):
+                    trigger_link = True
+                    break
+
+        if trigger_link:
+            try:
+                await message.delete()
+                
+                alert_text = await translate(text="⚠️ Links are not allowed here.", dest_lng=language)
+                await message.channel.send(f"{message.author.mention}, {alert_text}", delete_after=5)
+                return True
+            except discord.Forbidden:
+                pass
+
+        return False
+
+    async def automod(self, message):
+        if message.author.bot:
+            return False
+
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['generals'].get('language', 'en'))
+
+        if not config['generals']['staff'].get('use_discord_permissions', False):
+            staff_ids = set(config['generals']['staff'].get('manage_tickets', [])) | set(config['generals']['staff'].get('moderate_users', []))
+            is_staff = str(message.author.id) in staff_ids
+        else:
+            is_staff = message.author.guild_permissions.manage_messages or message.author.guild_permissions.moderate_members
+
+        if is_staff:
+            return False
+
+        if await self.automod_words(message, config, language):
+            return True
+        if await self.automod_links(message, config, language):
+            return True
+
+        return False
+
+    async def send_bump_message(self, channel, config, language):
+        translated_phrase = await translate(text="It's time to do", dest_lng=language)
+        ping_id = config['features']['bump_reminder'].get('ping', None)
+        
+        ping_str = ""
+        if ping_id:
+            if str(ping_id).lower() in ["everyone", "here"]:
+                ping_str = f"@{ping_id}"
+            else:
+                ping_str = f"<@&{ping_id}>"
+
+        final_message = f"**{translated_phrase} !** </bump:302050872383242240>\n> {ping_str}".strip()
+        await channel.send(content=final_message)
+
     async def check_active_tasks(self):
         await self.client.wait_until_ready()
 
@@ -27,34 +125,69 @@ class OnMessage(commands.Cog):
         if not os.path.exists(base_path): return
 
         for guild_id_str in os.listdir(base_path):
-            guild_id = int(guild_id_str)
+            try:
+                guild_id = int(guild_id_str)
+            except ValueError:
+                continue
+                
             data = await load_data(guild_id=guild_id, auto_create=True)
             data_path = f'server_configs/{guild_id}/data.json'
             config = await load_config(guild_id=guild_id, auto_create=True)
-            language = str(config['features'].get('language'))
-
+            
+            language = str(config['features'].get('language', config['generals'].get('language', 'en')))
             end_time = data.get('next_bump', None)
             enabled = bool(config['features']['bump_reminder'].get('enabled'))
-            channel_id = int(config['features']['bump_reminder'].get('channel'))
-            channel = await self.client.fetch_channel(channel_id)
+            
+            if enabled and end_time != "Anytime" and end_time:
+                channel_id = int(config['features']['bump_reminder'].get('channel'))
+                try:
+                    channel = self.client.get_channel(channel_id) or await self.client.fetch_channel(channel_id)
+                except Exception:
+                    continue
 
-            if enabled and end_time != "Anytime":
                 now = discord.utils.utcnow().timestamp()
                 if end_time > now:
                     self.client.loop.create_task(self.start_bump_reminder(guild_id=guild_id, end_time=end_time, channel_id=channel_id, language=language))
                 else:
-                    embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
-                    embed_description = await translate("Two hours passed since the last bump, you can bump the server again", dest_lng=language)
-
-                    embed = discord.Embed(title=embed_title,
-                        description=embed_description,
-                        colour=discord.Color.blurple(),
-                        timestamp=discord.utils.utcnow())
-            
-                    await channel.send(embed=embed)
+                    await self.send_bump_message(channel=channel, config=config, language=language)
                     data['next_bump'] = "Anytime"
                     with open(data_path, 'w') as f:
                         json.dump(data, f, indent=4)
+
+    async def bump_reminder(self, message):
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['features'].get('language', config['generals'].get('language', 'en')))
+        data = await load_data(guild_id=message.guild.id, auto_create=True)
+        data_path = f'server_configs/{message.guild.id}/data.json'
+
+        bump_reminder_enabled = bool(config['features']['bump_reminder'].get('enabled'))
+        channel_id = int(config['features']['bump_reminder'].get('announcement_channel_id'))
+
+        if message.author.id == 302050872383242240 and bump_reminder_enabled:
+            end_time = discord.utils.utcnow().timestamp() + 7200
+            data['next_bump'] = end_time
+            with open(data_path, 'w') as f:
+                json.dump(data, f, indent=4)
+            
+            self.client.loop.create_task(self.start_bump_reminder(guild_id=message.guild.id, end_time=end_time, channel_id=channel_id, language=language))
+
+    async def start_bump_reminder(self, guild_id, end_time, channel_id, language):
+        delay = end_time - discord.utils.utcnow().timestamp()
+        if delay > 0:
+            await asyncio.sleep(delay)
+
+        guild = self.client.get_guild(guild_id) or await self.client.fetch_guild(guild_id)
+        if guild:
+            channel = self.client.get_channel(channel_id) or await guild.fetch_channel(channel_id)
+            if channel:
+                config = await load_config(guild_id=guild_id, auto_create=True)
+                data = await load_data(guild_id=guild_id, auto_create=True)
+                data_path = f'server_configs/{guild_id}/data.json'
+
+                await self.send_bump_message(channel=channel, config=config, language=language)
+                data['next_bump'] = "Anytime"
+                with open(data_path, 'w') as f:
+                    json.dump(data, f, indent=4)
 
     async def message_autodelete(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
@@ -64,7 +197,7 @@ class OnMessage(commands.Cog):
 
         if autodelete_enabled:
             async def autodelete():
-                if message.channel.id in [int(cid) for cid in config['features']['message_autodelete'].get('channels_id')]:
+                if message.channel.id in [int(cid) for cid in config['features']['message_autodelete'].get('channels_ids')]:
                     await asyncio.sleep(autodelete_wait_duration)
                     try:
                         await message.delete()
@@ -73,179 +206,165 @@ class OnMessage(commands.Cog):
         
             self.client.loop.create_task(autodelete())
 
-    async def bump_reminder(self, message):
-        config = await load_config(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
-        data = await load_data(guild_id=message.guild.id, auto_create=True)
-        data_path = f'server_configs/{message.guild.id}/data.json'
+    async def query_ai(self, message, prompt, system_prompt, groq_token):
+        headers = {
+            "Authorization": f"Bearer {groq_token}", 
+            "Content-Type": "application/json"
+        }
 
-        bump_reminder_enabled = bool(config['features']['bump_reminder'].get('enabled'))
-        channel = int(config['features']['bump_reminder'].get('channel'))
-
-        if message.author.id == 302050872383242240 and bump_reminder_enabled:
-            end_time = discord.utils.utcnow().timestamp() + 7200
-
-            data['next_bump'] = end_time
-            with open(data_path, 'w') as f:
-                json.dump(data, f, indent=4)
-            
-            self.client.loop.create_task(self.start_bump_reminder(guild_id=message.guild.id, end_time=end_time, channel_id=channel, language=language))
-
-    async def start_bump_reminder(self, guild_id, end_time, channel_id, language):
-        delay = end_time - discord.utils.utcnow().timestamp()
-        await asyncio.sleep(delay)
-
-        guild = await self.client.fetch_guild(guild_id)
-        if guild:
-            channel = await guild.fetch_channel(channel_id)
-            if channel:
-                data = await load_data(guild_id=guild_id, auto_create=True)
-                data_path = f'server_configs/{guild_id}/data.json'
-
-                embed_title = await translate(text="⏰ It's bump time !", dest_lng=language)
-                embed_description = await translate(text="Two hours passed since the last bump, you can bump the server again", dest_lng=language)
-
-                embed = discord.Embed(title=embed_title,
-                    description=embed_description,
-                    colour=discord.Color.blurple(),
-                    timestamp=discord.utils.utcnow())
-            
-                await channel.send(embed=embed)
-                data['next_bump'] = "Anytime"
-                with open(data_path, 'w') as f:
-                    json.dump(data, f, indent=4)
-
-    async def feur(self, message): # Please don't mind about this function, it's just for fun
-        config = await load_config(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
-        feur_enabled = bool(config['features']['feur'].get('enabled')) # You will have to add this manually in the config, I dont want to add it for everyone because some peoples won't understand a I want to have clean configs files
-
-        if feur_enabled:
-            if language == "fr" and not message.author.bot: # It's a joke that only work in French
-                if message.content.lower().replace(" ", "").replace("?", "") == "quoi":
-                    await message.channel.send("Feur !")
-
-    async def query_ai(self, message, prompt):
-        history = []
-        async for msg in message.channel.history(limit=50, before=message):
-            history.append({
-                "role": "assistant",
-                "content": f"{msg.author.display_name} sent {msg.content}"
-            })
-            
-        history.reverse()
-
-        system_prompt = f"You are a bot on a Discord server, your username is '{str(self.client.user)[:-5]}'. A user is talking to you, reply to them. Here are some rules to help you: Reply directly and concisely (no more than 3 or 4 sentences), remain neutral and integrated into the conversation, NEVER use meta-comments like 'As an AI', 'Sure!', or 'Here is your answer', START your response immediately with the first word of your actual answer, NEVER prefix your response with your own name or username (for exemple do not write {str(self.client.user)[:-5]} : ...), respond directly without any prefix and always reply in the same language as the user's message. Context messages given by assistant are always formatted as 'username sent \"message\"'"
         payload = {
             "model": "openai/gpt-oss-safeguard-20b",
             "messages": [
                 {"role": "system", "content": system_prompt},
-                *history,
-                {"role": "user", "content": f"{message.author.display_name} : {prompt}"}
+                {"role": "user", "content": prompt}
             ],
             "max_tokens": 250,
             "temperature": 0.5
         }
+
         response = await asyncio.to_thread(
-            requests.post, self.api_url, headers = self.headers, json = payload, timeout = 15
+            requests.post, self.api_url, headers=headers, json=payload, timeout=15
         )
         return response.json()
 
     async def ai(self, message):
-        config = await load_config(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
+        if message.author.bot or message.mention_everyone or message.role_mentions:
+            return
+            
+        if not self.client.user.mentioned_in(message):
+            return
 
-        if self.client.user.mentioned_in(message) and not message.author.bot:
+        config = await load_config(guild_id=message.guild.id, auto_create=True)
+        language = str(config['generals'].get('language', 'en'))
+        
+        ai_config = config['features'].get('ai', {})
+        enabled = bool(ai_config.get('enabled', False))
+
+        if enabled:
             user_prompt = message.content.replace(f'<@!{self.client.user.id}>', '').replace(f'<@{self.client.user.id}>', '').strip()
 
             if user_prompt:
                 async with message.channel.typing():
                     try:
-                        data = await self.query_ai(prompt=user_prompt, message=message)
-                        if 'choices' in data:
+                        groq_token = ai_config.get('groq_token', '')
+                        system_prompt = ai_config.get('prompt', 'You are a helpful assistant.')
+
+                        data = await self.query_ai(
+                            message=message, 
+                            prompt=user_prompt, 
+                            system_prompt=system_prompt, 
+                            groq_token=groq_token
+                        )
+                        
+                        if 'choices' in data and len(data['choices']) > 0:
                             answer = data['choices'][0]['message']['content'].strip()
+                            
+                            if len(answer) > 2000:
+                                answer = answer[:1995] + "..."
+                            await message.reply(answer)
                         else:
                             answer = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
-                            print(data)
+                            await message.reply(answer)
+                            print(f"[IA Erreur API] : {data}")
 
-                        if len(answer) > 2000:
-                            answer = answer[:1990] + "..."
-                        await message.reply(answer)
-                    except Exception:
+                    except Exception as e:
                         answer = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
                         await message.reply(answer)
+                        print(f"[IA Erreur Exception] : {e}")
 
     async def leveling(self, message):
         config = await load_config(guild_id=message.guild.id, auto_create=True)
-        language = str(config['features'].get('language'))
+        language = str(config['features'].get('language', config['generals'].get('language', 'en')))
 
-        leveling_enabled = bool(config['features']['leveling'].get('enabled'))
-        exclude_channels = [int(channel) for channel in config['features']['leveling'].get('exclude_channels')]
-        boost_channels = [int(channel) for channel in config['features']['leveling'].get('boost_channels')]
+        leveling_config = config['features'].get('leveling', {})
+        chats_config = leveling_config.get('chats', {})
+        
+        leveling_enabled = bool(chats_config.get('enabled', False))
+        exclude_channels = [int(channel) for channel in chats_config.get('excluded_channels_ids', [])]
+        boost_channels = [int(channel) for channel in chats_config.get('boosted_channels_ids', [])]
+        
+        if not leveling_enabled or message.author.bot:
+            return
+
         current_level = await get_user_from_db(data_to_get="level", user_id=message.author.id, guild_id=message.guild.id)
         current_xp = await get_user_from_db(data_to_get="xp", user_id=message.author.id, guild_id=message.guild.id)
+        
         xp = current_xp
-        xp_required = 5*(current_level**2)
-        rewards = config['features']['leveling'].get('rewards')
-        stackable = config['features']['leveling'].get('rewards_stackable')
-        channel_id = int(config['features']['leveling'].get('announcement_channel_id'))
-        channel = message.guild.get_channel(channel_id)
+        xp_required = 5 * (current_level ** 2)
+        xp_per_message = int(chats_config.get('xp_per_messages', 1))
+        
+        if message.channel.id in exclude_channels:
+            return
+            
+        if message.channel.id in boost_channels:
+            xp_per_message *= 2
+            
+        xp += xp_per_message
+        await update_db(column="xp", value=xp, user_id=message.author.id, guild_id=message.guild.id)
 
-        if leveling_enabled and not message.author.bot:
-            if not message.channel.id in exclude_channels and not message.channel.id in boost_channels: 
-                await update_db(column="xp", value=current_xp + 1, user_id=message.author.id, guild_id=message.guild.id)
-                xp = current_xp + 1
-            elif not message.channel.id in exclude_channels and message.channel.id in boost_channels: 
-                await update_db(column="xp", value=current_xp + 2, user_id=message.author.id, guild_id=message.guild.id)
-                xp = current_xp + 2
-            if xp >= xp_required:
-                await update_db(column="level", value=current_level + 1, user_id=message.author.id, guild_id=message.guild.id)
-                role_id = rewards.get(str(current_level + 1)) or rewards.get(current_level + 1)
-                if role_id:
-                    role = message.guild.get_role(int(role_id))
-                    if role:
-                        if stackable:
-                            await message.author.add_roles(role)
-                        else:
-                            previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != current_level + 1]
-                            roles_to_remove = [role for role in message.author.roles if role.id in previous_rewards_id]
+        if xp >= xp_required:
+            new_level = current_level + 1
+            await update_db(column="level", value=new_level, user_id=message.author.id, guild_id=message.guild.id)
+            await update_db(column="xp", value=0, user_id=message.author.id, guild_id=message.guild.id)
+
+            rewards = leveling_config.get('rewards', {})
+            stackable = bool(leveling_config.get('rewards_stackable', False))
+            channel_id = int(leveling_config.get('announcement_channel_id'))
+            
+            channel = self.client.get_channel(channel_id) or message.channel
+            try:
+                if not channel and channel_id:
+                    channel = await self.client.fetch_channel(channel_id)
+            except Exception:
+                channel = message.channel
+
+            role_id = rewards.get(str(new_level)) or rewards.get(new_level)
+            role = message.guild.get_role(int(role_id)) if role_id else None
+
+            if role:
+                try:
+                    if stackable:
+                        await message.author.add_roles(role)
+                    else:
+                        previous_rewards_id = [int(rid) for lvl, rid in rewards.items() if int(lvl) != new_level]
+                        roles_to_remove = [r for r in message.author.roles if r.id in previous_rewards_id]
+                        if roles_to_remove:
                             await message.author.remove_roles(*roles_to_remove)
-                            await message.author.add_roles(role)
-                        embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
-                        embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
-                        embed_description_second_part = await translate(text=", you reached level **{level}** and have earned the role", dest_lng=language)
-                        embed_description_second_part = embed_description_second_part.format(level=current_level+1)
-                        embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language)
-                        embed_description_third_part = embed_description_third_part.format(need=5*((current_level+1)**2)-current_xp)
-                        embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} {role.mention} !\n{embed_description_third_part}'
+                        await message.author.add_roles(role)
+                except discord.Forbidden:
+                    pass
 
-                        embed = discord.Embed(title=embed_title,
-                            description=embed_description,
-                            colour=discord.Color.gold(),
-                            timestamp=discord.utils.utcnow())
-                        
-                        embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
+            next_xp_required = 5 * (new_level ** 2)
+            
+            embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
 
-                        await channel.send(embed=embed)
+            if role:
+                raw_text = leveling_config.get('text_reward')
+                embed_description = raw_text.format(
+                    user=message.author.mention,
+                    member=message.author.mention,
+                    level=new_level,
+                    role=role.mention,
+                    need=next_xp_required
+                )
+            else:
+                raw_text = leveling_config.get('text')
+                embed_description = raw_text.format(
+                    user=message.author.mention,
+                    member=message.author.mention,
+                    level=new_level,
+                    need=next_xp_required
+                )
 
-                        return
-                else:
-                    embed_title = await translate(text="🎉 New level reached !", dest_lng=language)
-                    embed_description_first_part = await translate(text="Congratulation", dest_lng=language)
-                    embed_description_second_part = await translate(text=", you reached level **{level}**", dest_lng=language)
-                    embed_description_second_part = embed_description_second_part.format(level=current_level+1)
-                    embed_description_third_part = await translate(text="To advance to the next level you need **{need}** more experience points", dest_lng=language)
-                    embed_description_third_part = embed_description_third_part.format(need=5*((current_level+1)**2))
-                    embed_description = f'{embed_description_first_part} {message.author.mention}{embed_description_second_part} !\n{embed_description_third_part}'
-
-                    embed = discord.Embed(title=embed_title,
-                        description=embed_description,
-                        colour=discord.Color.gold(),
-                        timestamp=discord.utils.utcnow())
-
-                    embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
-
-                    await channel.send(embed=embed)
+            embed = discord.Embed(
+                title=embed_title,
+                description=embed_description,
+                colour=discord.Color.gold(),
+                timestamp=discord.utils.utcnow()
+            )
+            embed.set_footer(text="Chaaat", icon_url=message.author.display_avatar.url)
+            
+            await channel.send(embed=embed)
 
     async def counting(self, message):
         async with self.counting_lock:
@@ -271,23 +390,23 @@ class OnMessage(commands.Cog):
 
             config = await load_config(guild_id=message.guild.id, auto_create=True)
             data = await load_data(guild_id=message.guild.id, auto_create=True)
-            language = str(config['features'].get('language'))
+            
+            language = str(config.get('features', {}).get('language', config.get('generals', {}).get('language', 'en')))
             data_path = f'server_configs/{message.guild.id}/data.json'
 
-            counting_enabled = bool(config['features']['counting'].get('enabled'))
-            channel_id = int(config['features']['counting'].get('channel_id'))
-            checkpoints = bool(config['features']['counting'].get('checkpoints'))
+            counting_config = config.get('features', {}).get('counting', {})
+            counting_enabled = bool(counting_config.get('enabled', False))
+            
+            raw_channel_id = counting_config.get('channel_id')
+            channel_id = int(raw_channel_id) if raw_channel_id else None
+            checkpoints = bool(counting_config.get('checkpoints', False))
+            
             raw_count = data.get('counting', None)
             current_count = Decimal(str(raw_count)) if raw_count is not None else Decimal(0)
             raw_user = data.get('last_user_id')
             last_user_id = int(raw_user) if raw_user is not None else None
 
-            if counting_enabled and channel_id == message.channel.id and not message.author.bot:
-                config = await load_config(guild_id=message.guild.id, auto_create=True)
-                language = str(config['features'].get('language'))
-                data = await load_data(guild_id=message.guild.id, auto_create=True)
-                data_path = f'server_configs/{message.guild.id}/data.json'
-
+            if counting_enabled and channel_id and channel_id == message.channel.id and not message.author.bot:
                 if current_count == None:
                     unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
                     await message.channel.send(unexpected_error_message)
@@ -358,9 +477,14 @@ class OnMessage(commands.Cog):
                     await message.add_reaction("❓")
                     unexpected_error_message = await translate(text="⚠️ An unexpected error occured, please try again later...", dest_lng=language)
                     await message.channel.send(unexpected_error_message)
-    
+
     @commands.Cog.listener()
     async def on_message(self, message):
+        if not message.guild: return
+
+        if await self.automod(message=message):
+            return
+
         await self.counting(message=message)
         await self.leveling(message=message)
         await self.ai(message=message)

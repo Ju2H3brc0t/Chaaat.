@@ -28,13 +28,31 @@ class TicketModal(discord.ui.Modal):
                 invitable=False
             )
 
-            roles = self.config['features']['tickets'].get('roles', [])
+            tickets_config = self.config.get('features', {}).get('tickets', {})
+            roles = tickets_config.get('roles', [])
+            
             for rid in roles:
                 role = guild.get_role(int(rid))
                 if role:
                     for member in role.members:
                         await thread.add_user(member)
             
+            staff_config = self.config.get('generals', {}).get('staff', {})
+            if not staff_config.get('use_discord_permissions', False):
+                staff_ids = set(staff_config.get('manage_tickets', [])) | set(staff_config.get('moderate_users', []))
+                for staff_id in staff_ids:
+                    try:
+                        staff_member = guild.get_member(int(staff_id)) or await guild.fetch_member(int(staff_id))
+                        if staff_member:
+                            await thread.add_user(staff_member)
+                    except Exception:
+                        pass
+            else:
+                for member in guild.members:
+                    if member.guild_permissions.manage_messages or member.guild_permissions.moderate_members:
+                        if not member.bot:
+                            await thread.add_user(member)
+
             await thread.add_user(user)
 
             embed_title = await translate(text="🎫 Ticket", dest_lng=self.language)
@@ -51,8 +69,9 @@ class TicketModal(discord.ui.Modal):
             await interaction_modal.followup.send(f"{modal_response_first_part} {thread.mention}", ephemeral=True)
 
         except Exception as e:
-            print(e)
-            await interaction_modal.followup.send("❌ An error occurred while creating the ticket.", ephemeral=True)
+            print(f"[Ticket Error] : {e}")
+            error_message = await translate(text="❌ An error occurred while creating the ticket.", dest_lng=self.language)
+            await interaction_modal.followup.send(error_message, ephemeral=True)
 
 class TicketLauncher(discord.ui.View):
     def __init__(self):
@@ -61,7 +80,7 @@ class TicketLauncher(discord.ui.View):
     @discord.ui.button(style=discord.ButtonStyle.secondary, emoji="📩", custom_id="ticket_button")
     async def ticket_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         config = await load_config(guild_id=interaction.guild.id, auto_create=False)
-        language = str(config['features'].get('language', 'en'))
+        language = str(config.get('generals', {}).get('language', 'en'))
 
         m_title, m_label, m_placeholder = await asyncio.gather(
             translate(text="Opening a ticket", dest_lng=language),

@@ -14,7 +14,8 @@ class Misc(commands.Cog):
         await interaction.response.send_message(f"🏓 Pong ! ({latency}ms)")
 
     @misc_group.command(name="say", description="Make the bot say something")
-    @app_commands.describe(message="The text the bot has to say")
+    @app_commands.describe(message="The text the bot has to say", channel="Where will the bot send his message")
+    @app_commands.checks.has_permissions(manage_messages=True)
     async def say(self, interaction: discord.Interaction, message: str):
         await interaction.response.send_message(message)
 

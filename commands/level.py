@@ -41,8 +41,7 @@ class Level(commands.Cog):
     @level_group.command(name="rank", description="Get your level, your point and your position in the rankings")
     async def rank(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language'))
-
+        language = str(config['generals'].get('language'))
         level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if level_enabled:
@@ -71,8 +70,7 @@ class Level(commands.Cog):
     @level_group.command(name="leaderboard", description="Get the experience leaderboard of the server")
     async def leaderboard(self, interaction: discord.Interaction):
         config = await load_config(guild_id=interaction.guild_id, auto_create=True)
-        language = str(config['features'].get('language'))
-
+        language = str(config['generals'].get('language'))
         level_enabled = bool(config['features']['leveling'].get('enabled'))
 
         if level_enabled:
@@ -86,10 +84,23 @@ class Level(commands.Cog):
                 return
         
             description = ""
+            guild = interaction.guild
+
             for index, (user_id, xp, level) in enumerate(top_players, start=1):
-                guild = interaction.guild
-                member = await guild.fetch_member(user_id)
-                description_first_part = f"**{index}.** {member.mention} -"
+                member = await guild.get_member(user_id)
+
+                if member is None:
+                    try:
+                        member = await guild.fetch_member(user_id)
+                    except discord.NotFound:
+                        member = None
+
+                if member:
+                    mention_str = member.mention
+                else:
+                    mention_str = await translate(text="User left", dest_lng=language)
+
+                description_first_part = f"**{index}.** {mention_str} -"
                 description_second_part = await translate(text="**Level {level} ({xp} XP)**", dest_lng=language, level=level, xp=xp)
                 description += f"{description_first_part} {description_second_part}\n"
         

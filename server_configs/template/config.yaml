@@ -1,45 +1,98 @@
+generals:
+
+  language: "en" # The language used by the bot in its responses and in some of its messages
+
+  timezone: "UTC" # The time zone that the bot will use, in particular to announce birthdays
+
+  staff:
+    use_discord_permissions: false # Does the bot use the permissions provided by Discord (moderate members and manage channels)?
+    manage_tickets: # All users who need permission to manage tickets. Note that this permission is completely independent of Discord permissions if `use_discord_permissions` is set to false!
+     - "123456789012345678"
+     - "123456789012345678"
+    moderate_users: # All users who need permission to manage members. Note that this permission is completely independent of Discord permissions if `use_discord_permissions` is set to false!
+     - "123456789012345678"
+     - "123456789012345678"
+
 features:
+
+  ai:
+    enabled: false
+    groq_token: "TOKEN"
+    prompt: "lorem ipsum dolor sit amet"
+
+  automod:
+    banned_nicknames: # All words/phrases in this list and their possible variations will be banned. Any member using a banned nickname will automatically have their nickname changed. Note that if a word is added, the bot will not check previous usernames; the check is only performed each time the nickname is changed.
+     - "lorem"
+     - "ipsum"
+     - "dolor"     
+    banned_words: # All words/phrases in this list and their possible variations will be banned. Any member using a prohibited term in their message will have their message deleted. Note that if a word is added, the bot will not check previous messages, only new ones.
+     - "sit"
+     - "amet"
+    banned_links:
+      all: false
+      discord_invites: false
+      others: ["www.test.com", "test", "test.com"]
+
   birthday:
-    announcement_channel_id: 123456789012345678 # Where should the bot anounce birthday's
-    enabled: false # A feature to celebrate the birthday of a member 
+    announcement_channel_id: "123456789012345678"
+    enabled: false 
     gift:
       enabled: false
-      role: []
-      temporary_role: []
-      xp: 0
+      roles: ["123456789012345678", "123456789012345678"]
+      temporary_role: ["123456789012345678", "123456789012345678"]
+      xp: 100
+    text: "lorem ipsum dolor sit amet"
+
   bump_reminder:
-    channel: 123456789012345678
+    announcement_channel_id: "123456789012345678"
     enabled: false # A reminder for Disboard /bump command
+    ping: "123456789012345678"
+
   counting:
-    channel_id: 123456789012345678
+    channel_id: "123456789012345678"
     checkpoints: false # A checkpoint every 100 messages; the bot will react with "🚩" at each checkpoint.
     enabled: false # A game where users must send numbers in order and sequentially without anyone making a mistake or participating twice.
+
   goodbye:
-    channel_id: 123456789012345678
+    announcement_channel_id: "123456789012345678"
     enabled: false
-  language: en # The language used by the bot
+    text: "lorem ipsum dolor sit amet"
+
   leveling:
-    announcement_channel_id: 123456789012345678 # Where should the bot announce new levels
-    boost_channels: [] # 1 message = 2xp for channels in the list
-    enabled: false # 1 message = 1xp
-    exclude_channels: [] # 1 message = 0xp for channels in the list
+    announcement_channel_id: "123456789012345678" # Where should the bot announce new levels
     rewards:
-      123456789012345678: 123456789012345678 # level: reward (role id)
+      1: "123456789012345678" # level: reward (role id)
     rewards_stackable: false # If the bot has to remove the previous rewarded role
+    text: "lorem ipsum dolor sit amet"
+    text_reward: "lorem ipsum dolor sit amet"
+
+    chats:
+      boosted_channels_ids: ["123456789012345678", "123456789012345678"] 
+      enabled: false
+      excluded_channels_ids: ["123456789012345678", "123456789012345678"]
+      xp_per_messages: 1
+    vocal:
+      boosted_channels_ids: ["123456789012345678", "123456789012345678"]
+      enabled: false
+      excluded_channels_ids: ["123456789012345678", "123456789012345678"]
+      xp_per_minutes: 1
+
   linked_roles: # The bot will add/remove automatically childrens roles in the parent role is added/removed
     "123456789012345678":
      - "123456789012345678"
      - "123456789012345678"
-  member_role:
+
+  member_roles:
     enabled: false # A role that will be added to each new user
-    role_id: []
+    roles_ids: ["123456789012345678", "123456789012345678"]
+
   message_autodelete:
-    channels_id: [] # Autodeletion of messages in the list
+    channels_ids: ["123456789012345678", "123456789012345678"] # Autodeletion of messages in the list
     enabled: false 
     wait: 0 # For how long do the bot have to wait before deleting the message
-  tickets:
-    roles: [] # Roles able to manage tickets
+
   welcome:
-    channel_id: 123456789012345678
+    announcement_channel_id: "123456789012345678"
     enabled: false
+    text: "lorem ipsum dolor sit amet"
     

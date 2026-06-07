@@ -3,6 +3,7 @@ from discord.ext import commands
 import os
 import yaml
 import json
+import asyncio
 
 class OnGuildJoin(commands.Cog):
     def __init__(self, client):
@@ -19,9 +20,14 @@ class OnGuildJoin(commands.Cog):
             json.dump(DEFAULT_JSON, json_file, indent=4)
 
         await guild.chunk()
+        
+        db_tasks = []
         for member in guild.members:
             if not member.bot:
-                await add_users_to_db(member.id, guild.id)
+                db_tasks.append(add_users_to_db(member.id, guild.id))
+        
+        if db_tasks:
+            await asyncio.gather(*db_tasks)
 
 async def setup(client):
     await client.add_cog(OnGuildJoin(client))
